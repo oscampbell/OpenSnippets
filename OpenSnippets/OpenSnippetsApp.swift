@@ -18,13 +18,14 @@ struct SnippetsApp: App {
 
     @SceneBuilder
     private func appScenes() -> some Scene {
-        if appMode == .window {
+        switch appMode {
+        case .window:
             WindowGroup {
                 ContentView()
                     .environmentObject(themeSettings)
             }
             .windowStyle(.titleBar)
-        } else {
+        case .menuBar:
             MenuBarExtra("OpenSnippets", systemImage: "note.text") {
                 // Menu Bar content will go here
                 Text("Hello from Menu Bar")
