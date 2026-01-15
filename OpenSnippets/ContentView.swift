@@ -5,7 +5,7 @@ struct ContentView: View {
     @EnvironmentObject var themeSettings: ThemeSettings
     @StateObject private var store = SnippetStore()
     @State private var search = ""
-    @State private var selectedID: Snippet.ID?
+    @State private var selectedIDs: Set<Snippet.ID> = []
     @State private var showingHelp = false
     @State private var showingDeleteConfirmation = false
     @State private var showingThemeSettings = false
@@ -80,6 +80,7 @@ struct ContentView: View {
                                 Text("HTML").tag("html")
                                 Text("CSS").tag("css")
                                 Text("JSON").tag("json")
+                                Text("Bash/Shell").tag("shell") // Added Bash/Shell
                                 // Add more languages as needed
                             }
                             .pickerStyle(.menu)
@@ -89,6 +90,7 @@ struct ContentView: View {
 
                             SpellCheckingTextEditor(
                                 text: $store.snippets[index].content,
+                                language: $store.snippets[index].language, // Passed language binding
                                 font: themedNSFont(style: .body, design: .monospaced),
                                 foregroundColor: NSColor(themeSettings.currentTheme.textColor.color),
                                 tintColor: NSColor(themeSettings.currentTheme.secondaryAccentColor.color)
@@ -170,8 +172,7 @@ struct ContentView: View {
                     Label("Delete", systemImage: "trash")
                         .padding(.horizontal, 10)
                         .padding(.vertical, 6)
-                        .background(LinearGradient(colors: [themeSettings.currentTheme.primaryAccentColor.color.opacity(0.8), themeSettings.currentTheme.primaryAccentColor.color], startPoint: .topLeading, endPoint: .bottomTrailing))
-                        .foregroundColor(themeSettings.currentTheme.textColor.color)
+                                                                .background(LinearGradient(colors: [themeSettings.currentTheme.primaryAccentColor.color.opacity(0.8), themeSettings.currentTheme.primaryAccentColor.color], startPoint: .topLeading, endPoint: .bottomTrailing))                        .foregroundColor(themeSettings.currentTheme.textColor.color)
                         .clipShape(Capsule())
                 }
                 .disabled(selectedIDs.isEmpty)
@@ -217,13 +218,12 @@ struct ContentView: View {
     func newSnippet() {
         let snippet = Snippet(title: "New Snippet", content: "")
         store.snippets.insert(snippet, at: 0)
-        selectedID = snippet.id
+        selectedIDs = [snippet.id]
     }
 
-    func deleteSnippet() {
-        guard let id = selectedID else { return }
-        store.snippets.removeAll { $0.id == id }
-        selectedID = nil
+    func performDeleteSnippet() {
+        store.snippets.removeAll { selectedIDs.contains($0.id) }
+        selectedIDs = []
     }
 
     func copy(_ text: String) {
@@ -232,6 +232,12 @@ struct ContentView: View {
         let pb = NSPasteboard.general
         pb.clearContents()
         pb.setString(expanded, forType: .string)
+    }
+
+    func paste(into text: inout String) {
+        if let clipboardContent = NSPasteboard.general.string(forType: .string) {
+            text.append(clipboardContent)
+        }
     }
 
     // MARK: - Variable Expansion
@@ -300,6 +306,3 @@ struct ContentView: View {
         return result
     }
 }
-
-
-

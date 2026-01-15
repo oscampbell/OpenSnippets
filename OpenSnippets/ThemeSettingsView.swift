@@ -1,5 +1,20 @@
 import SwiftUI
 
+struct ThemedButtonStyle: ButtonStyle {
+    @EnvironmentObject var themeSettings: ThemeSettings
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .padding(.horizontal, 14)
+            .padding(.vertical, 8)
+            .background(LinearGradient(colors: [themeSettings.currentTheme.primaryAccentColor.color, themeSettings.currentTheme.primaryAccentColor.color.opacity(0.8)], startPoint: .topLeading, endPoint: .bottomTrailing))
+            .foregroundColor(themeSettings.currentTheme.textColor.color)
+            .clipShape(Capsule())
+            .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
+            .animation(.easeOut, value: configuration.isPressed)
+    }
+}
+
 struct ThemeSettingsView: View {
     @EnvironmentObject var themeSettings: ThemeSettings
     @Environment(\.dismiss) var dismiss // For dismissing the sheet
@@ -47,7 +62,7 @@ struct ThemeSettingsView: View {
             Button("Reset to Defaults") {
                 resetToDefaults()
             }
-            .buttonStyle(.borderedProminent)
+            .buttonStyle(ThemedButtonStyle())
             .padding(.top)
 
             Spacer()
@@ -60,6 +75,7 @@ struct ThemeSettingsView: View {
                 Button("Done") {
                     dismiss()
                 }
+                .buttonStyle(ThemedButtonStyle())
             }
         }
         .onAppear {
