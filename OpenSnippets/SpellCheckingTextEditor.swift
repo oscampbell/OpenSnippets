@@ -15,10 +15,6 @@ struct SpellCheckingTextEditor: NSViewRepresentable {
         textView.delegate = context.coordinator
         textView.isRichText = false
         textView.isContinuousSpellCheckingEnabled = true
-        textView.usesAutomaticDataDetection = false
-        textView.usesAutomaticQuoteSubstitution = false
-        textView.usesAutomaticDashSubstitution = false
-        textView.usesAutomaticTextReplacement = false
         textView.textContainerInset = NSSize(width: 5, height: 5) // Add some padding
 
         if let font = font {
