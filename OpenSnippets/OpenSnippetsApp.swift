@@ -13,20 +13,18 @@ struct SnippetsApp: App {
     @AppStorage("appMode") var appMode: AppMode = .window // Re-add AppMode and @AppStorage
 
     var body: some Scene {
-        Group { // Wrap conditional scenes in a Group
-            if appMode == .window {
-                WindowGroup {
-                    ContentView()
-                        .environmentObject(themeSettings)
-                }
-                .windowStyle(.titleBar)
-            } else {
-                MenuBarExtra("OpenSnippets", systemImage: "note.text") {
-                    // Menu Bar content will go here
-                    Text("Hello from Menu Bar")
-                    Button("Quit") {
-                        NSApplication.shared.terminate(nil)
-                    }
+        if appMode == .window {
+            WindowGroup {
+                ContentView()
+                    .environmentObject(themeSettings)
+            }
+            .windowStyle(.titleBar)
+        } else {
+            MenuBarExtra("OpenSnippets", systemImage: "note.text") {
+                // Menu Bar content will go here
+                Text("Hello from Menu Bar")
+                Button("Quit") {
+                    NSApplication.shared.terminate(nil)
                 }
             }
         }
