@@ -13,6 +13,11 @@ struct SnippetsApp: App {
     @AppStorage("appMode") var appMode: AppMode = .window // Re-add AppMode and @AppStorage
 
     var body: some Scene {
+        appScenes()
+    }
+
+    @SceneBuilder
+    private func appScenes() -> some Scene {
         if appMode == .window {
             WindowGroup {
                 ContentView()
