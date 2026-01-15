@@ -2,10 +2,17 @@ import SwiftUI
 import AppKit
 
 struct ContentView: View {
+    @EnvironmentObject var themeSettings: ThemeSettings
     @StateObject private var store = SnippetStore()
     @State private var search = ""
     @State private var selectedID: Snippet.ID?
     @State private var showingHelp = false
+    @State private var showingDeleteConfirmation = false
+    @State private var showingThemeSettings = false
+
+    var isClipboardEmpty: Bool {
+        NSPasteboard.general.string(forType: .string) == nil
+    }
 
     // Filter snippets by search
     var filtered: [Snippet] {
@@ -21,31 +28,31 @@ struct ContentView: View {
 
             // MARK: - LEFT PANE (Snippet List)
             ZStack {
-                Color.black.opacity(0.95) // dark background for left pane
+                themeSettings.currentTheme.snippetListBackgroundColor.color // dark background for left pane
                 VStack {
                     TextField("Search", text: $search)
                         .textFieldStyle(.roundedBorder)
-                        .foregroundColor(.white)
-                        .tint(.cyan)
+                        .foregroundColor(themeSettings.currentTheme.textColor.color)
+                        .tint(themeSettings.currentTheme.primaryAccentColor.color)
                         .padding()
 
-                    List(filtered, selection: $selectedID) { snippet in
+                    List(filtered, selection: $selectedIDs) { snippet in
                         VStack(alignment: .leading) {
                             Text(snippet.title).bold()
-                                .foregroundColor(.white)
+                                .foregroundColor(themeSettings.currentTheme.textColor.color)
                             Text(snippet.content)
                                 .lineLimit(1)
-                                .foregroundColor(Color.white.opacity(0.6))
+                                .foregroundColor(themeSettings.currentTheme.textColor.color.opacity(0.6))
                         }
-                        .contentShape(Rectangle())
+                        // .contentShape(Rectangle()) // Removed to fix selection bug
                         .onTapGesture(count: 2) {
                             copy(snippet.content)
                         }
                     }
                     .listStyle(.inset)
                     .scrollContentBackground(.hidden)
-                    .background(Color.black.opacity(0.95))
-                    .accentColor(.cyan) // selection highlight
+                    .background(themeSettings.currentTheme.snippetListBackgroundColor.color)
+                    .accentColor(themeSettings.currentTheme.primaryAccentColor.color) // selection highlight
                 }
             }
             .frame(minWidth: 250)
@@ -53,24 +60,40 @@ struct ContentView: View {
 
             // MARK: - RIGHT PANE (Editor / Placeholder)
             ZStack {
-                Color(red: 0.10, green: 0.10, blue: 0.12) // dark background for right pane
+                themeSettings.currentTheme.snippetDetailBackgroundColor.color // dark background for right pane
                 Group {
-                    if let id = selectedID,
-                       let index = store.snippets.firstIndex(where: { $0.id == id }) {
+                    if let firstSelectedID = selectedIDs.first, // Get the first selected ID
+                       let index = store.snippets.firstIndex(where: { $0.id == firstSelectedID }) {
 
                         VStack(alignment: .leading, spacing: 12) {
                             TextField("Title", text: $store.snippets[index].title)
-                                .font(.title2)
+                                .font(themedFont(style: .title2)) // Use themed font
                                 .textFieldStyle(.plain)
-                                .foregroundColor(.white)
-                                .tint(.mint)
+                                .foregroundColor(themeSettings.currentTheme.textColor.color)
+                                .tint(themeSettings.currentTheme.secondaryAccentColor.color)
 
-                            TextEditor(text: $store.snippets[index].content)
-                                .font(.system(.body, design: .monospaced))
-                                .scrollContentBackground(.hidden)
-                                .background(Color.black.opacity(0.6))
-                                .foregroundColor(.white)
-                                .tint(.mint)
+                            Picker("Language", selection: $store.snippets[index].language) {
+                                Text("Plain Text").tag("plaintext")
+                                Text("Swift").tag("swift")
+                                Text("Python").tag("python")
+                                Text("JavaScript").tag("javascript")
+                                Text("HTML").tag("html")
+                                Text("CSS").tag("css")
+                                Text("JSON").tag("json")
+                                // Add more languages as needed
+                            }
+                            .pickerStyle(.menu)
+                            .foregroundColor(themeSettings.currentTheme.textColor.color)
+                            .tint(themeSettings.currentTheme.secondaryAccentColor.color)
+                            .padding(.horizontal, -4) // Adjust padding to align with TextField
+
+                            SpellCheckingTextEditor(
+                                text: $store.snippets[index].content,
+                                font: themedNSFont(style: .body, design: .monospaced),
+                                foregroundColor: NSColor(themeSettings.currentTheme.textColor.color),
+                                tintColor: NSColor(themeSettings.currentTheme.secondaryAccentColor.color)
+                            )
+                            .background(themeSettings.currentTheme.snippetDetailBackgroundColor.color.opacity(0.6))
 
                             HStack {
                                 Button {
@@ -79,28 +102,48 @@ struct ContentView: View {
                                     Label("Copy", systemImage: "doc.on.doc")
                                         .padding(.horizontal, 14)
                                         .padding(.vertical, 8)
-                                        .background(LinearGradient(colors: [.cyan, .blue], startPoint: .topLeading, endPoint: .bottomTrailing))
-                                        .foregroundColor(.black)
+                                        .background(LinearGradient(colors: [themeSettings.currentTheme.primaryAccentColor.color, themeSettings.currentTheme.primaryAccentColor.color.opacity(0.8)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                                        .foregroundColor(themeSettings.currentTheme.textColor.color)
                                         .clipShape(Capsule())
                                 }
                                 .keyboardShortcut("c", modifiers: [.command])
                                 .buttonStyle(.plain)
 
+                                Button {
+                                    paste(into: &store.snippets[index].content)
+                                } label: {
+                                    Label("Paste", systemImage: "clipboard")
+                                        .padding(.horizontal, 14)
+                                        .padding(.vertical, 8)
+                                        .background(LinearGradient(colors: [themeSettings.currentTheme.secondaryAccentColor.color, themeSettings.currentTheme.secondaryAccentColor.color.opacity(0.8)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                                        .foregroundColor(themeSettings.currentTheme.textColor.color)
+                                        .clipShape(Capsule())
+                                }
+                                .keyboardShortcut("v", modifiers: [.command])
+                                .buttonStyle(.plain)
+                                .disabled(isClipboardEmpty)
+
                                 Spacer()
 
                                 Text("Updated \(store.snippets[index].updatedAt.formatted())")
-                                    .font(.caption)
-                                    .foregroundColor(Color.white.opacity(0.6))
+                                    .font(themedFont(style: .caption))
+                                    .foregroundColor(themeSettings.currentTheme.textColor.color.opacity(0.6))
                             }
                         }
                         .padding()
                         .background(Color.clear)
                         .cornerRadius(8)
 
-                    } else {
+                    } else if selectedIDs.count > 1 { // Display a message for multiple selections
+                        VStack {
+                            Text("\(selectedIDs.count) snippets selected")
+                                .foregroundColor(themeSettings.currentTheme.textColor.color.opacity(0.6))
+                        }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    } else { // No selection
                         VStack {
                             Text("Select or create a snippet")
-                                .foregroundColor(Color.white.opacity(0.6))
+                                .foregroundColor(themeSettings.currentTheme.textColor.color.opacity(0.6))
                         }
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                     }
@@ -110,42 +153,62 @@ struct ContentView: View {
             .layoutPriority(1)
         }
         .frame(minWidth: 700, minHeight: 400)
-        .accentColor(.mint) // global accent color
+        .accentColor(themeSettings.currentTheme.primaryAccentColor.color) // global accent color
         .toolbar {
             ToolbarItemGroup {
                 Button(action: newSnippet) {
                     Label("New", systemImage: "plus")
                         .padding(.horizontal, 10)
                         .padding(.vertical, 6)
-                        .background(LinearGradient(colors: [.green, .mint], startPoint: .topLeading, endPoint: .bottomTrailing))
-                        .foregroundColor(.black)
+                        .background(LinearGradient(colors: [themeSettings.currentTheme.primaryAccentColor.color.opacity(0.8), themeSettings.currentTheme.primaryAccentColor.color], startPoint: .topLeading, endPoint: .bottomTrailing))
+                        .foregroundColor(themeSettings.currentTheme.textColor.color)
                         .clipShape(Capsule())
                 }
                 .keyboardShortcut("n", modifiers: [.command])
 
-                Button(action: deleteSnippet) {
+                Button(action: { showingDeleteConfirmation = true }) {
                     Label("Delete", systemImage: "trash")
                         .padding(.horizontal, 10)
                         .padding(.vertical, 6)
-                        .background(LinearGradient(colors: [.pink, .red], startPoint: .topLeading, endPoint: .bottomTrailing))
-                        .foregroundColor(.white)
+                        .background(LinearGradient(colors: [themeSettings.currentTheme.primaryAccentColor.color.opacity(0.8), themeSettings.currentTheme.primaryAccentColor.color], startPoint: .topLeading, endPoint: .bottomTrailing))
+                        .foregroundColor(themeSettings.currentTheme.textColor.color)
                         .clipShape(Capsule())
                 }
-                .disabled(selectedID == nil)
+                .disabled(selectedIDs.isEmpty)
                 .keyboardShortcut(.delete, modifiers: [.command])
 
                 Button { showingHelp = true } label: {
                     Label("Help", systemImage: "questionmark.circle")
                         .padding(.horizontal, 10)
                         .padding(.vertical, 6)
-                        .background(LinearGradient(colors: [.purple, .indigo], startPoint: .topLeading, endPoint: .bottomTrailing))
-                        .foregroundColor(.white)
+                        .background(LinearGradient(colors: [themeSettings.currentTheme.secondaryAccentColor.color.opacity(0.8), themeSettings.currentTheme.secondaryAccentColor.color], startPoint: .topLeading, endPoint: .bottomTrailing))
+                        .foregroundColor(themeSettings.currentTheme.textColor.color)
+                        .clipShape(Capsule())
+                }
+
+                Button { showingThemeSettings = true } label: { // Theme Settings Button
+                    Label("Theme", systemImage: "paintbrush")
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(LinearGradient(colors: [themeSettings.currentTheme.secondaryAccentColor.color.opacity(0.8), themeSettings.currentTheme.secondaryAccentColor.color], startPoint: .topLeading, endPoint: .bottomTrailing))
+                        .foregroundColor(themeSettings.currentTheme.textColor.color)
                         .clipShape(Capsule())
                 }
             }
         }
         .sheet(isPresented: $showingHelp) {
             HelpSheetView(showingHelp: $showingHelp)
+        }
+        .sheet(isPresented: $showingThemeSettings) { // Sheet for Theme Settings
+            ThemeSettingsView()
+        }
+        .alert("Delete Snippet", isPresented: $showingDeleteConfirmation) {
+            Button("Delete", role: .destructive) {
+                performDeleteSnippet()
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("Are you sure you want to delete this snippet? This action cannot be undone.")
         }
     }
 
@@ -172,6 +235,39 @@ struct ContentView: View {
     }
 
     // MARK: - Variable Expansion
+    // Only for AppKit-based views.
+    private func themedNSFont(style: Font.TextStyle, design: Font.Design = .default) -> NSFont {
+        let size = themeSettings.currentTheme.fontSize
+        let family = themeSettings.currentTheme.fontFamily
+
+        switch family {
+        case "Monospaced":
+            return NSFont.monospacedSystemFont(ofSize: size, weight: .regular)
+        case "Serif":
+            return NSFont(name: "Times New Roman", size: size) ?? NSFont.systemFont(ofSize: size, weight: .regular)
+        case "System":
+            return NSFont.systemFont(ofSize: size) // Basic system font
+        default:
+            return NSFont.systemFont(ofSize: size) // Fallback
+        }
+    }
+
+    // For SwiftUI views
+    private func themedFont(style: Font.TextStyle, design: Font.Design = .default) -> Font {
+        let size = themeSettings.currentTheme.fontSize
+        let family = themeSettings.currentTheme.fontFamily
+
+        switch family {
+        case "Monospaced":
+            return .system(size: size, weight: .regular, design: .monospaced)
+        case "Serif":
+            return .system(size: size, weight: .regular, design: .serif)
+        case "System":
+            return .system(size: size, weight: .regular, design: .default)
+        default:
+            return .system(size: size, weight: .regular, design: design)
+        }
+    }
     func expandVariables(in text: String) -> String {
         var result = text
 
