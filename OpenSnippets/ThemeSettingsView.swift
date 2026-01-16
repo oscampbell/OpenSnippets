@@ -5,9 +5,37 @@ struct ThemedButtonStyle: ButtonStyle {
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
+            .background(LinearGradient(colors: [themeSettings.currentTheme.primaryAccentColor.color, themeSettings.currentTheme.primaryAccentColor.color.opacity(0.8)], startPoint: .topLeading, endPoint: .bottomTrailing))
+            .foregroundColor(themeSettings.currentTheme.buttonTextColor.color)
+            .clipShape(Capsule())
+            .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
+            .animation(.easeOut, value: configuration.isPressed)
+    }
+}
+
+struct PrimaryThemedButtonStyle: ButtonStyle {
+    @EnvironmentObject var themeSettings: ThemeSettings
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
             .padding(.horizontal, 14)
             .padding(.vertical, 8)
             .background(LinearGradient(colors: [themeSettings.currentTheme.primaryAccentColor.color, themeSettings.currentTheme.primaryAccentColor.color.opacity(0.8)], startPoint: .topLeading, endPoint: .bottomTrailing))
+            .foregroundColor(themeSettings.currentTheme.buttonTextColor.color)
+            .clipShape(Capsule())
+            .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
+            .animation(.easeOut, value: configuration.isPressed)
+    }
+}
+
+struct SecondaryThemedButtonStyle: ButtonStyle {
+    @EnvironmentObject var themeSettings: ThemeSettings
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .padding(.horizontal, 14)
+            .padding(.vertical, 8)
+            .background(LinearGradient(colors: [themeSettings.currentTheme.secondaryAccentColor.color, themeSettings.currentTheme.secondaryAccentColor.color.opacity(0.8)], startPoint: .topLeading, endPoint: .bottomTrailing))
             .foregroundColor(themeSettings.currentTheme.buttonTextColor.color)
             .clipShape(Capsule())
             .scaleEffect(configuration.isPressed ? 0.95 : 1.0)

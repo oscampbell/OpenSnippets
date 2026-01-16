@@ -2,10 +2,6 @@
 
 A macOS application for storing and managing code snippets.
 
-## Motivation
-
-I wanted a snippets tool for my Mac, but the one I liked on the App Store was too expensive. So, I decided to build my own!
-
 ## Features
 
 - **Snippet Management**: Create, edit, and delete code snippets.

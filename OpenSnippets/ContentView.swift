@@ -1,5 +1,6 @@
 import SwiftUI
 import AppKit
+import UniformTypeIdentifiers
 
 struct ContentView: View {
     @EnvironmentObject var themeSettings: ThemeSettings
@@ -105,11 +106,10 @@ struct ContentView: View {
                                         .padding(.horizontal, 14)
                                         .padding(.vertical, 8)
                                         .background(LinearGradient(colors: [themeSettings.currentTheme.primaryAccentColor.color, themeSettings.currentTheme.primaryAccentColor.color.opacity(0.8)], startPoint: .topLeading, endPoint: .bottomTrailing))
-                                        .foregroundColor(themeSettings.currentTheme.textColor.color)
+                                        .foregroundColor(themeSettings.currentTheme.buttonTextColor.color)
                                         .clipShape(Capsule())
                                 }
                                 .keyboardShortcut("c", modifiers: [.command])
-                                .buttonStyle(.plain)
 
                                 Button {
                                     paste(into: &store.snippets[index].content)
@@ -118,11 +118,10 @@ struct ContentView: View {
                                         .padding(.horizontal, 14)
                                         .padding(.vertical, 8)
                                         .background(LinearGradient(colors: [themeSettings.currentTheme.secondaryAccentColor.color, themeSettings.currentTheme.secondaryAccentColor.color.opacity(0.8)], startPoint: .topLeading, endPoint: .bottomTrailing))
-                                        .foregroundColor(themeSettings.currentTheme.textColor.color)
+                                        .foregroundColor(themeSettings.currentTheme.buttonTextColor.color)
                                         .clipShape(Capsule())
                                 }
                                 .keyboardShortcut("v", modifiers: [.command])
-                                .buttonStyle(.plain)
                                 .disabled(isClipboardEmpty)
 
                                 Spacer()
@@ -160,41 +159,44 @@ struct ContentView: View {
             ToolbarItemGroup {
                 Button(action: newSnippet) {
                     Label("New", systemImage: "plus")
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
-                        .background(LinearGradient(colors: [themeSettings.currentTheme.primaryAccentColor.color.opacity(0.8), themeSettings.currentTheme.primaryAccentColor.color], startPoint: .topLeading, endPoint: .bottomTrailing))
-                        .foregroundColor(themeSettings.currentTheme.textColor.color)
-                        .clipShape(Capsule())
                 }
+                .buttonStyle(PrimaryThemedButtonStyle())
                 .keyboardShortcut("n", modifiers: [.command])
-
-                Button(action: { showingDeleteConfirmation = true }) {
-                    Label("Delete", systemImage: "trash")
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
-                                                                .background(LinearGradient(colors: [themeSettings.currentTheme.primaryAccentColor.color.opacity(0.8), themeSettings.currentTheme.primaryAccentColor.color], startPoint: .topLeading, endPoint: .bottomTrailing))                        .foregroundColor(themeSettings.currentTheme.textColor.color)
-                        .clipShape(Capsule())
-                }
-                .disabled(selectedIDs.isEmpty)
-                .keyboardShortcut(.delete, modifiers: [.command])
-
-                Button { showingHelp = true } label: {
-                    Label("Help", systemImage: "questionmark.circle")
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
-                        .background(LinearGradient(colors: [themeSettings.currentTheme.secondaryAccentColor.color.opacity(0.8), themeSettings.currentTheme.secondaryAccentColor.color], startPoint: .topLeading, endPoint: .bottomTrailing))
-                        .foregroundColor(themeSettings.currentTheme.textColor.color)
-                        .clipShape(Capsule())
-                }
+                .padding(.horizontal, 4)
 
                 Button { showingThemeSettings = true } label: { // Theme Settings Button
                     Label("Theme", systemImage: "paintbrush")
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
-                        .background(LinearGradient(colors: [themeSettings.currentTheme.secondaryAccentColor.color.opacity(0.8), themeSettings.currentTheme.secondaryAccentColor.color], startPoint: .topLeading, endPoint: .bottomTrailing))
-                        .foregroundColor(themeSettings.currentTheme.textColor.color)
-                        .clipShape(Capsule())
                 }
+                .buttonStyle(PrimaryThemedButtonStyle())
+                .padding(.horizontal, 4)
+
+                Spacer()
+
+                Button(action: { showingDeleteConfirmation = true }) {
+                    Label("Delete", systemImage: "trash")
+                }
+                .buttonStyle(SecondaryThemedButtonStyle())
+                .disabled(selectedIDs.isEmpty)
+                .keyboardShortcut(.delete, modifiers: [.command])
+                .padding(.horizontal, 4)
+
+                Button(action: importSnippets) {
+                    Label("Import", systemImage: "square.and.arrow.down")
+                }
+                .buttonStyle(SecondaryThemedButtonStyle())
+                .padding(.horizontal, 4)
+
+                Button(action: exportSnippets) {
+                    Label("Export", systemImage: "square.and.arrow.up")
+                }
+                .buttonStyle(SecondaryThemedButtonStyle())
+                .padding(.horizontal, 4)
+
+                Button { showingHelp = true } label: {
+                    Label("Help", systemImage: "questionmark.circle")
+                }
+                .buttonStyle(SecondaryThemedButtonStyle())
+                .padding(.horizontal, 4)
             }
         }
         .sheet(isPresented: $showingHelp) {
@@ -214,6 +216,60 @@ struct ContentView: View {
     }
 
     // MARK: - Actions
+
+    func exportSnippets() {
+        print("Export snippets button clicked")
+        let savePanel = NSSavePanel()
+        savePanel.allowedContentTypes = [.json]
+        savePanel.nameFieldStringValue = "OpenSnippets.json"
+
+        if savePanel.runModal() == .OK {
+            print("File selected")
+            if let url = savePanel.url {
+                print("URL: \(url)")
+                do {
+                    let encoder = JSONEncoder()
+                    encoder.outputFormatting = .prettyPrinted
+                    let data = try encoder.encode(store.snippets)
+                    try data.write(to: url)
+                    print("Snippets exported successfully")
+                } catch {
+                    print("Error exporting snippets: \(error.localizedDescription)")
+                }
+            }
+        }
+    }
+
+    func importSnippets() {
+        print("Import snippets button clicked")
+        let openPanel = NSOpenPanel()
+        openPanel.allowedContentTypes = [.json]
+        openPanel.allowsMultipleSelection = false
+
+        if openPanel.runModal() == .OK {
+            print("File selected")
+            if let url = openPanel.url {
+                print("URL: \(url)")
+                do {
+                    let data = try Data(contentsOf: url)
+                    let decoder = JSONDecoder()
+                    let snippets = try decoder.decode([Snippet].self, from: data)
+                    print("Decoded \(snippets.count) snippets")
+
+                    for snippet in snippets {
+                        if !store.snippets.contains(where: { $0.id == snippet.id }) {
+                            store.snippets.append(snippet)
+                            print("Imported snippet: \(snippet.title)")
+                        } else {
+                            print("Skipped duplicate snippet: \(snippet.title)")
+                        }
+                    }
+                } catch {
+                    print("Error importing snippets: \(error.localizedDescription)")
+                }
+            }
+        }
+    }
 
     func newSnippet() {
         let snippet = Snippet(title: "New Snippet", content: "")
