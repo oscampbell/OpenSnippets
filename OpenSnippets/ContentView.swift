@@ -38,21 +38,37 @@ struct ContentView: View {
                         .tint(themeSettings.currentTheme.primaryAccentColor.color)
                         .padding()
 
-                    List(filtered, selection: $selectedIDs) { snippet in
-                        HStack {
-                            iconForLanguage(snippet.language)
-                                .foregroundColor(themeSettings.currentTheme.secondaryAccentColor.color)
-                            VStack(alignment: .leading) {
-                                Text(snippet.title).bold()
-                                    .foregroundColor(themeSettings.currentTheme.textColor.color)
-                                Text(snippet.content)
-                                    .lineLimit(1)
-                                    .foregroundColor(themeSettings.currentTheme.textColor.color.opacity(0.6))
+                    List(selection: $selectedIDs) {
+                        ForEach(filtered) { snippet in
+                            HStack {
+                                iconForLanguage(snippet.language)
+                                    .foregroundColor(themeSettings.currentTheme.secondaryAccentColor.color)
+                                VStack(alignment: .leading) {
+                                    Text(snippet.title).bold()
+                                        .foregroundColor(themeSettings.currentTheme.textColor.color)
+                                    Text(snippet.content)
+                                        .lineLimit(1)
+                                        .foregroundColor(themeSettings.currentTheme.textColor.color.opacity(0.6))
+                                }
                             }
+                            .onTapGesture(count: 2) {
+                                copy(snippet.content)
+                            }
+                            .tag(snippet.id)
                         }
-                        // .contentShape(Rectangle()) // Removed to fix selection bug
-                        .onTapGesture(count: 2) {
-                            copy(snippet.content)
+                        .onMove { source, destination in
+                            // Perform reordering on the filtered list first to get the correct items
+                            var reorderedFilteredSnippets = filtered
+                            reorderedFilteredSnippets.move(fromOffsets: source, toOffset: destination)
+
+                            // Now, update the original store.snippets based on the reordered filtered snippets
+                            var updatedSnippets = [Snippet]()
+                            for filteredSnippet in reorderedFilteredSnippets {
+                                if let originalSnippet = store.snippets.first(where: { $0.id == filteredSnippet.id }) {
+                                    updatedSnippets.append(originalSnippet)
+                                }
+                            }
+                            store.snippets = updatedSnippets
                         }
                     }
                     .listStyle(.inset)
@@ -128,6 +144,7 @@ struct ContentView: View {
                                         .foregroundColor(themeSettings.currentTheme.buttonTextColor.color)
                                         .clipShape(Capsule())
                                 }
+                                .buttonStyle(.plain) // Apply plain style
                                 .keyboardShortcut("c", modifiers: [.command])
 
                                 Button {
@@ -140,6 +157,7 @@ struct ContentView: View {
                                         .foregroundColor(themeSettings.currentTheme.buttonTextColor.color)
                                         .clipShape(Capsule())
                                 }
+                                .buttonStyle(.plain) // Apply plain style
                                 .keyboardShortcut("v", modifiers: [.command])
                                 .disabled(isClipboardEmpty)
 
@@ -347,21 +365,21 @@ struct ContentView: View {
         case "swift":
             return Image(systemName: "swift")
         case "python":
-            return Image(systemName: "curlybraces.square.fill")
+            return Image(systemName: "curlybraces.square.fill") // Using filled curly braces for distinction
         case "javascript":
-            return Image(systemName: "curlybraces")
+            return Image(systemName: "curlybraces") // Good representation for JS
         case "html":
-            return Image(systemName: "chevron.left.slash.chevron.right")
+            return Image(systemName: "chevron.left.slash.chevron.right") // Represents tags
         case "css":
-            return Image(systemName: "curlybraces.square")
+            return Image(systemName: "curlybraces.square") // Unfilled version of curly braces
         case "json":
-            return Image(systemName: "doc.json")
+            return Image(systemName: "doc.json") // Specific SF Symbol for JSON
         case "shell":
-            return Image(systemName: "terminal")
+            return Image(systemName: "terminal") // Specific SF Symbol for terminal/shell
         case "plaintext":
-            return Image(systemName: "doc.plaintext")
+            return Image(systemName: "doc.plaintext") // Specific SF Symbol for plain text
         default:
-            return Image(systemName: "doc.text")
+            return Image(systemName: "doc.text") // Generic document icon
         }
     }
 

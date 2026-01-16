@@ -4,6 +4,10 @@ A macOS application for storing and managing code snippets.
 
 ## Features
 
+- **Improved UI/UX**: Redesigned theme settings and overall aesthetic improvements.
+- **Fixed Paste Functionality**: Pasting now correctly overwrites selected text.
+- **Updated Language Icons**: Language icons are now more accurate and consistent.
+- **Snippet Reordering**: Drag-and-drop functionality to reorder snippets in the list.
 - **Snippet Management**: Create, edit, and delete code snippets.
 - **Import/Export Functionality**: Easily export all your snippets to a single JSON file for backup or sharing. You can also import snippets from a previously exported JSON file. The JSON format is human-readable.
 - **Syntax Highlighting**: Powered by [Highlightr](https://github.com/raspu/Highlightr), which is a Swift wrapper for [highlight.js](https://highlightjs.org/).
