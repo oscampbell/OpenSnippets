@@ -10,6 +10,7 @@ struct ContentView: View {
     @State private var showingHelp = false
     @State private var showingDeleteConfirmation = false
     @State private var showingThemeSettings = false
+    @State private var editingSnippetContent: String = ""
 
     var isClipboardEmpty: Bool {
         NSPasteboard.general.string(forType: .string) == nil
@@ -38,12 +39,16 @@ struct ContentView: View {
                         .padding()
 
                     List(filtered, selection: $selectedIDs) { snippet in
-                        VStack(alignment: .leading) {
-                            Text(snippet.title).bold()
-                                .foregroundColor(themeSettings.currentTheme.textColor.color)
-                            Text(snippet.content)
-                                .lineLimit(1)
-                                .foregroundColor(themeSettings.currentTheme.textColor.color.opacity(0.6))
+                        HStack {
+                            iconForLanguage(snippet.language)
+                                .foregroundColor(themeSettings.currentTheme.secondaryAccentColor.color)
+                            VStack(alignment: .leading) {
+                                Text(snippet.title).bold()
+                                    .foregroundColor(themeSettings.currentTheme.textColor.color)
+                                Text(snippet.content)
+                                    .lineLimit(1)
+                                    .foregroundColor(themeSettings.currentTheme.textColor.color.opacity(0.6))
+                            }
                         }
                         // .contentShape(Rectangle()) // Removed to fix selection bug
                         .onTapGesture(count: 2) {
@@ -54,6 +59,12 @@ struct ContentView: View {
                     .scrollContentBackground(.hidden)
                     .background(themeSettings.currentTheme.snippetListBackgroundColor.color)
                     .accentColor(themeSettings.currentTheme.primaryAccentColor.color) // selection highlight
+                    .onChange(of: selectedIDs) { oldSelection, newSelection in
+                        if let newID = newSelection.first,
+                           let index = store.snippets.firstIndex(where: { $0.id == newID }) {
+                            editingSnippetContent = store.snippets[index].content
+                        }
+                    }
                 }
             }
             .frame(minWidth: 250)
@@ -90,13 +101,21 @@ struct ContentView: View {
                             .padding(.horizontal, -4) // Adjust padding to align with TextField
 
                             SpellCheckingTextEditor(
-                                text: $store.snippets[index].content,
+                                text: $editingSnippetContent,
                                 language: $store.snippets[index].language, // Passed language binding
                                 font: themedNSFont(style: .body, design: .monospaced),
                                 foregroundColor: NSColor(themeSettings.currentTheme.textColor.color),
                                 tintColor: NSColor(themeSettings.currentTheme.secondaryAccentColor.color)
                             )
+                            .onChange(of: editingSnippetContent) { oldValue, newValue in
+                                store.snippets[index].content = newValue
+                            }
                             .background(themeSettings.currentTheme.snippetDetailBackgroundColor.color.opacity(0.6))
+                            .cornerRadius(8)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(themeSettings.currentTheme.secondaryAccentColor.color, lineWidth: 1)
+                            )
 
                             HStack {
                                 Button {
@@ -112,7 +131,7 @@ struct ContentView: View {
                                 .keyboardShortcut("c", modifiers: [.command])
 
                                 Button {
-                                    paste(into: &store.snippets[index].content)
+                                    paste()
                                 } label: {
                                     Label("Paste", systemImage: "clipboard")
                                         .padding(.horizontal, 14)
@@ -156,21 +175,12 @@ struct ContentView: View {
         .frame(minWidth: 700, minHeight: 400)
         .accentColor(themeSettings.currentTheme.primaryAccentColor.color) // global accent color
         .toolbar {
-            ToolbarItemGroup {
+            ToolbarItemGroup(placement: .primaryAction) {
                 Button(action: newSnippet) {
                     Label("New", systemImage: "plus")
                 }
                 .buttonStyle(PrimaryThemedButtonStyle())
                 .keyboardShortcut("n", modifiers: [.command])
-                .padding(.horizontal, 4)
-
-                Button { showingThemeSettings = true } label: { // Theme Settings Button
-                    Label("Theme", systemImage: "paintbrush")
-                }
-                .buttonStyle(PrimaryThemedButtonStyle())
-                .padding(.horizontal, 4)
-
-                Spacer()
 
                 Button(action: { showingDeleteConfirmation = true }) {
                     Label("Delete", systemImage: "trash")
@@ -178,25 +188,28 @@ struct ContentView: View {
                 .buttonStyle(SecondaryThemedButtonStyle())
                 .disabled(selectedIDs.isEmpty)
                 .keyboardShortcut(.delete, modifiers: [.command])
-                .padding(.horizontal, 4)
+            }
 
+            ToolbarItemGroup(placement: .secondaryAction) {
                 Button(action: importSnippets) {
                     Label("Import", systemImage: "square.and.arrow.down")
                 }
                 .buttonStyle(SecondaryThemedButtonStyle())
-                .padding(.horizontal, 4)
 
                 Button(action: exportSnippets) {
                     Label("Export", systemImage: "square.and.arrow.up")
                 }
                 .buttonStyle(SecondaryThemedButtonStyle())
-                .padding(.horizontal, 4)
+
+                Button { showingThemeSettings = true } label: { // Theme Settings Button
+                    Label("Theme", systemImage: "paintbrush")
+                }
+                .buttonStyle(PrimaryThemedButtonStyle())
 
                 Button { showingHelp = true } label: {
                     Label("Help", systemImage: "questionmark.circle")
                 }
                 .buttonStyle(SecondaryThemedButtonStyle())
-                .padding(.horizontal, 4)
             }
         }
         .sheet(isPresented: $showingHelp) {
@@ -290,10 +303,8 @@ struct ContentView: View {
         pb.setString(expanded, forType: .string)
     }
 
-    func paste(into text: inout String) {
-        if let clipboardContent = NSPasteboard.general.string(forType: .string) {
-            text.append(clipboardContent)
-        }
+    func paste() {
+        NotificationCenter.default.post(name: .pasteInTextView, object: nil)
     }
 
     // MARK: - Variable Expansion
@@ -330,6 +341,30 @@ struct ContentView: View {
             return .system(size: size, weight: .regular, design: design)
         }
     }
+
+    private func iconForLanguage(_ language: String) -> Image {
+        switch language {
+        case "swift":
+            return Image(systemName: "swift")
+        case "python":
+            return Image(systemName: "curlybraces.square.fill")
+        case "javascript":
+            return Image(systemName: "curlybraces")
+        case "html":
+            return Image(systemName: "chevron.left.slash.chevron.right")
+        case "css":
+            return Image(systemName: "curlybraces.square")
+        case "json":
+            return Image(systemName: "doc.json")
+        case "shell":
+            return Image(systemName: "terminal")
+        case "plaintext":
+            return Image(systemName: "doc.plaintext")
+        default:
+            return Image(systemName: "doc.text")
+        }
+    }
+
     func expandVariables(in text: String) -> String {
         var result = text
 
@@ -362,3 +397,4 @@ struct ContentView: View {
         return result
     }
 }
+

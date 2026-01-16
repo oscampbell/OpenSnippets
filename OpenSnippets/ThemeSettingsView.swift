@@ -62,58 +62,69 @@ struct ThemeSettingsView: View {
     @State private var ignoreChanges = true // Flag to prevent initial onChange triggers
 
     var body: some View {
-        Form {
-            Section("Preset Theme") {
-                Picker("Select a Theme", selection: $selectedPresetTheme) {
-                    ForEach(PresetThemes.themes, id: \.self) { presetTheme in
-                        Text(presetTheme.name).tag(presetTheme as PresetTheme?)
+        TabView {
+            // Preset Themes Tab
+            Form {
+                Section("Preset Theme") {
+                    Picker("Select a Theme", selection: $selectedPresetTheme) {
+                        ForEach(PresetThemes.themes, id: \.self) { presetTheme in
+                            Text(presetTheme.name).tag(presetTheme as PresetTheme?)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                    .onChange(of: selectedPresetTheme) { oldPreset, newPreset in
+                        if let preset = newPreset {
+                            applyPreset(preset)
+                        }
                     }
                 }
-                .pickerStyle(.menu)
-                .onChange(of: selectedPresetTheme) { oldPreset, newPreset in
-                    if let preset = newPreset {
-                        applyPreset(preset)
+            }
+            .tabItem {
+                Label("Presets", systemImage: "swatchpalette")
+            }
+
+            // Custom Theme Tab
+            Form {
+                Section("Colors") {
+                    ColorPicker("Primary Accent Color", selection: $selectedPrimaryAccentColor)
+                    ColorPicker("Secondary Accent Color", selection: $selectedSecondaryAccentColor)
+                    ColorPicker("Snippet List Background", selection: $selectedSnippetListBackgroundColor)
+                    ColorPicker("Snippet Detail Background", selection: $selectedSnippetDetailBackgroundColor)
+                    ColorPicker("Text Color", selection: $selectedTextColor)
+                    ColorPicker("Button Text Color", selection: $selectedButtonTextColor)
+                }
+
+                Section("Font") {
+                    Picker("Font Family", selection: $selectedFontFamily) {
+                        Text("System").tag("System")
+                        Text("Monospaced").tag("Monospaced")
+                        Text("Serif").tag("Serif")
+                        // Add more font options as desired
                     }
+                    .pickerStyle(.menu)
+
+                    Slider(value: $selectedFontSize, in: 10...20, step: 1) {
+                        Text("Font Size")
+                    } minimumValueLabel: {
+                        Text("10")
+                    } maximumValueLabel: {
+                        Text("20")
+                    }
+                    Text("Current size: \(selectedFontSize, format: .number)")
                 }
-            }
-            Section("Colors") {
-                ColorPicker("Primary Accent Color", selection: $selectedPrimaryAccentColor)
-                ColorPicker("Secondary Accent Color", selection: $selectedSecondaryAccentColor)
-                ColorPicker("Snippet List Background", selection: $selectedSnippetListBackgroundColor)
-                ColorPicker("Snippet Detail Background", selection: $selectedSnippetDetailBackgroundColor)
-                ColorPicker("Text Color", selection: $selectedTextColor)
-                ColorPicker("Button Text Color", selection: $selectedButtonTextColor)
-            }
 
-            Section("Font") {
-                Picker("Font Family", selection: $selectedFontFamily) {
-                    Text("System").tag("System")
-                    Text("Monospaced").tag("Monospaced")
-                    Text("Serif").tag("Serif")
-                    // Add more font options as desired
+                Button("Reset to Defaults") {
+                    resetToDefaults()
                 }
-                .pickerStyle(.menu)
-
-                Slider(value: $selectedFontSize, in: 10...20, step: 1) {
-                    Text("Font Size")
-                } minimumValueLabel: {
-                    Text("10")
-                } maximumValueLabel: {
-                    Text("20")
-                }
-                Text("Current size: \(selectedFontSize, format: .number)")
+                .buttonStyle(ThemedButtonStyle())
+                .padding(.top)
             }
-
-            Button("Reset to Defaults") {
-                resetToDefaults()
+            .tabItem {
+                Label("Custom", systemImage: "slider.horizontal.3")
             }
-            .buttonStyle(ThemedButtonStyle())
-            .padding(.top)
-
-            Spacer()
         }
         .padding()
-        .frame(minWidth: 400, idealWidth: 500, minHeight: 500)
+        .frame(minWidth: 400, idealWidth: 500, minHeight: 400)
         .navigationTitle("Theme Settings")
         .toolbar {
             ToolbarItem(placement: .confirmationAction) {

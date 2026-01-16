@@ -12,6 +12,7 @@ struct SpellCheckingTextEditor: NSViewRepresentable {
     func makeNSView(context: Context) -> NSScrollView {
         let scrollView = NSTextView.scrollableTextView()
         let textView = scrollView.documentView as! NSTextView
+        context.coordinator.textView = textView
 
         textView.delegate = context.coordinator
         textView.isRichText = true // Must be true for attributed strings
@@ -71,9 +72,12 @@ struct SpellCheckingTextEditor: NSViewRepresentable {
 
     class Coordinator: NSObject, NSTextViewDelegate {
         var parent: SpellCheckingTextEditor
+        var textView: NSTextView?
 
         init(_ parent: SpellCheckingTextEditor) {
             self.parent = parent
+            super.init()
+            NotificationCenter.default.addObserver(self, selector: #selector(paste), name: .pasteInTextView, object: nil)
         }
 
         func textDidChange(_ notification: Notification) {
@@ -81,6 +85,14 @@ struct SpellCheckingTextEditor: NSViewRepresentable {
             parent.text = textView.string
             // Re-apply highlighting on text changes
             parent.applySyntaxHighlighting(to: textView, language: parent.language)
+        }
+
+        @objc func paste() {
+            guard let textView = textView else { return }
+            if let clipboardContent = NSPasteboard.general.string(forType: .string) {
+                textView.insertText(clipboardContent, replacementRange: textView.selectedRange())
+                parent.text = textView.string // Explicitly update the binding after paste
+            }
         }
     }
     
