@@ -8,6 +8,7 @@ struct AppTheme: Codable, Equatable, Hashable {
     var snippetListBackgroundColor: CodableColor
     var snippetDetailBackgroundColor: CodableColor
     var textColor: CodableColor
+    var buttonTextColor: CodableColor
     var fontFamily: String
     var fontSize: CGFloat
 
@@ -17,6 +18,7 @@ struct AppTheme: Codable, Equatable, Hashable {
         snippetListBackgroundColor: CodableColor(Color.black.opacity(0.95)),
         snippetDetailBackgroundColor: CodableColor(Color(red: 0.10, green: 0.10, blue: 0.12)),
         textColor: CodableColor(Color.white),
+        buttonTextColor: CodableColor(Color.white),
         fontFamily: "Monospaced", // Default monospaced font
         fontSize: 14.0
     )

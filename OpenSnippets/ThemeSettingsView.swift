@@ -8,7 +8,7 @@ struct ThemedButtonStyle: ButtonStyle {
             .padding(.horizontal, 14)
             .padding(.vertical, 8)
             .background(LinearGradient(colors: [themeSettings.currentTheme.primaryAccentColor.color, themeSettings.currentTheme.primaryAccentColor.color.opacity(0.8)], startPoint: .topLeading, endPoint: .bottomTrailing))
-            .foregroundColor(themeSettings.currentTheme.textColor.color)
+            .foregroundColor(themeSettings.currentTheme.buttonTextColor.color)
             .clipShape(Capsule())
             .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
             .animation(.easeOut, value: configuration.isPressed)
@@ -25,19 +25,36 @@ struct ThemeSettingsView: View {
     @State private var selectedSnippetListBackgroundColor: Color = AppTheme.defaultTheme.snippetListBackgroundColor.color
     @State private var selectedSnippetDetailBackgroundColor: Color = AppTheme.defaultTheme.snippetDetailBackgroundColor.color
     @State private var selectedTextColor: Color = AppTheme.defaultTheme.textColor.color
+    @State private var selectedButtonTextColor: Color = AppTheme.defaultTheme.buttonTextColor.color
     @State private var selectedFontFamily: String = AppTheme.defaultTheme.fontFamily
     @State private var selectedFontSize: CGFloat = AppTheme.defaultTheme.fontSize
+
+    @State private var selectedPresetTheme: PresetTheme? = PresetThemes.themes.first
 
     @State private var ignoreChanges = true // Flag to prevent initial onChange triggers
 
     var body: some View {
         Form {
+            Section("Preset Theme") {
+                Picker("Select a Theme", selection: $selectedPresetTheme) {
+                    ForEach(PresetThemes.themes, id: \.self) { presetTheme in
+                        Text(presetTheme.name).tag(presetTheme as PresetTheme?)
+                    }
+                }
+                .pickerStyle(.menu)
+                .onChange(of: selectedPresetTheme) { oldPreset, newPreset in
+                    if let preset = newPreset {
+                        applyPreset(preset)
+                    }
+                }
+            }
             Section("Colors") {
                 ColorPicker("Primary Accent Color", selection: $selectedPrimaryAccentColor)
                 ColorPicker("Secondary Accent Color", selection: $selectedSecondaryAccentColor)
                 ColorPicker("Snippet List Background", selection: $selectedSnippetListBackgroundColor)
                 ColorPicker("Snippet Detail Background", selection: $selectedSnippetDetailBackgroundColor)
                 ColorPicker("Text Color", selection: $selectedTextColor)
+                ColorPicker("Button Text Color", selection: $selectedButtonTextColor)
             }
 
             Section("Font") {
@@ -68,7 +85,7 @@ struct ThemeSettingsView: View {
             Spacer()
         }
         .padding()
-        .frame(minWidth: 400, idealWidth: 500, minHeight: 400)
+        .frame(minWidth: 400, idealWidth: 500, minHeight: 500)
         .navigationTitle("Theme Settings")
         .toolbar {
             ToolbarItem(placement: .confirmationAction) {
@@ -85,6 +102,7 @@ struct ThemeSettingsView: View {
             selectedSnippetListBackgroundColor = themeSettings.currentTheme.snippetListBackgroundColor.color
             selectedSnippetDetailBackgroundColor = themeSettings.currentTheme.snippetDetailBackgroundColor.color
             selectedTextColor = themeSettings.currentTheme.textColor.color
+            selectedButtonTextColor = themeSettings.currentTheme.buttonTextColor.color
             selectedFontFamily = themeSettings.currentTheme.fontFamily
             selectedFontSize = themeSettings.currentTheme.fontSize
             ignoreChanges = false // Allow changes to trigger updateTheme() after initialization
@@ -95,6 +113,7 @@ struct ThemeSettingsView: View {
         .onChange(of: selectedSnippetListBackgroundColor) { oldValue, newValue in if !ignoreChanges && oldValue != newValue { updateTheme() } }
         .onChange(of: selectedSnippetDetailBackgroundColor) { oldValue, newValue in if !ignoreChanges && oldValue != newValue { updateTheme() } }
         .onChange(of: selectedTextColor) { oldValue, newValue in if !ignoreChanges && oldValue != newValue { updateTheme() } }
+        .onChange(of: selectedButtonTextColor) { oldValue, newValue in if !ignoreChanges && oldValue != newValue { updateTheme() } }
         .onChange(of: selectedFontFamily) { oldValue, newValue in if !ignoreChanges && oldValue != newValue { updateTheme() } }
         .onChange(of: selectedFontSize) { oldValue, newValue in if !ignoreChanges && oldValue != newValue { updateTheme() } }
     }
@@ -106,6 +125,7 @@ struct ThemeSettingsView: View {
             snippetListBackgroundColor: CodableColor(selectedSnippetListBackgroundColor),
             snippetDetailBackgroundColor: CodableColor(selectedSnippetDetailBackgroundColor),
             textColor: CodableColor(selectedTextColor),
+            buttonTextColor: CodableColor(selectedButtonTextColor),
             fontFamily: selectedFontFamily,
             fontSize: selectedFontSize
         )
@@ -118,7 +138,20 @@ struct ThemeSettingsView: View {
         selectedSnippetListBackgroundColor = themeSettings.currentTheme.snippetListBackgroundColor.color
         selectedSnippetDetailBackgroundColor = themeSettings.currentTheme.snippetDetailBackgroundColor.color
         selectedTextColor = themeSettings.currentTheme.textColor.color
+        selectedButtonTextColor = themeSettings.currentTheme.buttonTextColor.color
         selectedFontFamily = themeSettings.currentTheme.fontFamily
         selectedFontSize = themeSettings.currentTheme.fontSize
+    }
+
+    private func applyPreset(_ preset: PresetTheme) {
+        themeSettings.currentTheme = preset.theme
+        selectedPrimaryAccentColor = preset.theme.primaryAccentColor.color
+        selectedSecondaryAccentColor = preset.theme.secondaryAccentColor.color
+        selectedSnippetListBackgroundColor = preset.theme.snippetListBackgroundColor.color
+        selectedSnippetDetailBackgroundColor = preset.theme.snippetDetailBackgroundColor.color
+        selectedTextColor = preset.theme.textColor.color
+        selectedButtonTextColor = preset.theme.buttonTextColor.color
+        selectedFontFamily = preset.theme.fontFamily
+        selectedFontSize = preset.theme.fontSize
     }
 }

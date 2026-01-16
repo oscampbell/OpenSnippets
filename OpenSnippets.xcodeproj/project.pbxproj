@@ -6,7 +6,12 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
+		6A37E36D2F1A503A00BB3D58 /* PresetThemes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresetThemes.swift; sourceTree = "<group>"; };
 		6A717EC12F0FA54D0089DC97 /* OpenSnippets.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OpenSnippets.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -34,6 +39,7 @@
 			children = (
 				6A717EC32F0FA54D0089DC97 /* OpenSnippets */,
 				6A717EC22F0FA54D0089DC97 /* Products */,
+
 			);
 			sourceTree = "<group>";
 		};
@@ -119,6 +125,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
