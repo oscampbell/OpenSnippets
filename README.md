@@ -25,21 +25,9 @@ A macOS application for storing, managing, and quickly accessing code snippets. 
 
 ## Screenshots
 
-Here are some screenshots of OpenSnippets in action, showcasing its user interface and key features.
+![OpenSnippets Screenshot](Screenshots/iScreen Shoter - OpenSnippets - 260128142744.jpg)
 
-*   **Main Application Window**:
-    ![Main Window](Screenshots/main_window.png)
-    *A view of the main interface, showing the snippet list, code editor, and overall layout.*
-
-*   **Theme Customization**:
-    ![Theme Settings](Screenshots/theme_settings.png)
-    *Demonstrates the theme settings panel, where users can select presets and customize colors/fonts.*
-
-*   **Import/Export Feature**:
-    ![Import/Export Dialog](Screenshots/import_export.png)
-    *An example of the import/export dialog, highlighting the ease of managing your snippet library.*
-
-*(Note: Please replace these placeholder images with actual screenshots from the application. Create a directory named `Screenshots` at the root of the project and place your image files there, ensuring the filenames match the ones referenced above.)*
+*(Note: Please replace this placeholder image with an actual screenshot from the application. Create a directory named `Screenshots` at the root of the project and place your image files there, ensuring the filenames match the one referenced above.)*
 
 ## Getting Started
 
