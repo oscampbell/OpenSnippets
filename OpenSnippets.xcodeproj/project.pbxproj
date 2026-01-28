@@ -8,10 +8,16 @@
 
 /* Begin PBXBuildFile section */
 		6A37E4422F1A810F00BB3D58 /* Notifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A37E4412F1A810F00BB3D58 /* Notifications.swift */; };
+		6A37E4902F1A991800BB3D58 /* OpenSnippetsAppController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A37E48F2F1A991800BB3D58 /* OpenSnippetsAppController.swift */; };
+		6A37E4942F1A995D00BB3D58 /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A37E4932F1A995D00BB3D58 /* MenuBarView.swift */; };
+		6A37E4982F1AA0BF00BB3D58 /* SnippetUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A37E4972F1AA0BF00BB3D58 /* SnippetUtils.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		6A37E4412F1A810F00BB3D58 /* Notifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Notifications.swift; sourceTree = "<group>"; };
+		6A37E48F2F1A991800BB3D58 /* OpenSnippetsAppController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenSnippetsAppController.swift; sourceTree = "<group>"; };
+		6A37E4932F1A995D00BB3D58 /* MenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarView.swift; sourceTree = "<group>"; };
+		6A37E4972F1AA0BF00BB3D58 /* SnippetUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnippetUtils.swift; sourceTree = "<group>"; };
 		6A717EC12F0FA54D0089DC97 /* OpenSnippets.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OpenSnippets.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -40,6 +46,9 @@
 				6A717EC32F0FA54D0089DC97 /* OpenSnippets */,
 				6A717EC22F0FA54D0089DC97 /* Products */,
 				6A37E4412F1A810F00BB3D58 /* Notifications.swift */,
+				6A37E48F2F1A991800BB3D58 /* OpenSnippetsAppController.swift */,
+				6A37E4932F1A995D00BB3D58 /* MenuBarView.swift */,
+				6A37E4972F1AA0BF00BB3D58 /* SnippetUtils.swift */,
 			);
 			sourceTree = "<group>";
 		};
@@ -125,6 +134,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6A37E4942F1A995D00BB3D58 /* MenuBarView.swift in Sources */,
+				6A37E4982F1AA0BF00BB3D58 /* SnippetUtils.swift in Sources */,
+				6A37E4902F1A991800BB3D58 /* OpenSnippetsAppController.swift in Sources */,
 				6A37E4422F1A810F00BB3D58 /* Notifications.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
