@@ -1,5 +1,7 @@
 # OpenSnippets
 
+![main_screenshot](https://github.com/user-attachments/assets/df8c63e2-c32d-406b-a6f7-a16674504125)
+
 A macOS application for storing, managing, and quickly accessing code snippets. OpenSnippets is designed to boost your productivity by keeping your most used code fragments organized and readily available.
 
 ## Features
@@ -22,12 +24,6 @@ A macOS application for storing, managing, and quickly accessing code snippets. 
 -   **Clipboard Integration**: Seamlessly copy snippets to your system clipboard for quick pasting into any application. You can also paste content from your clipboard directly into new or existing snippets.
 -   **Local Storage**: All your snippets are safely and securely saved locally to a JSON file on your macOS device.
 -   **Spell Checking**: The built-in editor includes robust spell-checking capabilities to help you maintain clean and error-free comments and text within your snippets.
-
-## Screenshots
-
-![OpenSnippets Screenshot](Screenshots/main_screenshot.jpg)
-
-*(Note: Please replace this placeholder image with an actual screenshot from the application. Create a directory named `Screenshots` at the root of the project and place your image files there, ensuring the filenames match the one referenced above.)*
 
 ## Getting Started
 
