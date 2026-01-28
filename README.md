@@ -25,7 +25,7 @@ A macOS application for storing, managing, and quickly accessing code snippets. 
 
 ## Screenshots
 
-![OpenSnippets Screenshot](Screenshots/iScreen Shoter - OpenSnippets - 260128142744.jpg)
+![OpenSnippets Screenshot](Screenshots/main_screenshot.jpg)
 
 *(Note: Please replace this placeholder image with an actual screenshot from the application. Create a directory named `Screenshots` at the root of the project and place your image files there, ensuring the filenames match the one referenced above.)*
 
