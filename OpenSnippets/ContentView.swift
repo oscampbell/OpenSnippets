@@ -16,6 +16,7 @@ struct ContentView: View {
     @State private var showingCommandPalette = false // Command Palette state
     @State private var showingGistImport = false // Gist Import state
     @State private var gistURL = ""
+    @Environment(\.undoManager) var undoManager
 
     var isClipboardEmpty: Bool {
         NSPasteboard.general.string(forType: .string) == nil
@@ -180,6 +181,19 @@ struct ContentView: View {
                                 .help(isPreviewMode ? "Edit Mode" : "Preview Markdown")
                                 
                                 Button {
+                                    let originalContent = editingSnippetContent
+                                    
+                                    // Register Undo
+                                    undoManager?.registerUndo(withTarget: store) { _ in
+                                        if let undoIndex = store.snippets.firstIndex(where: { $0.id == firstSelectedID }) {
+                                            store.snippets[undoIndex].content = originalContent
+                                            // We also need to update the local editing state if we are currently editing this snippet
+                                            if selectedIDs.contains(firstSelectedID) {
+                                                editingSnippetContent = originalContent
+                                            }
+                                        }
+                                    }
+                                    
                                     editingSnippetContent = CodeFormatter.format(editingSnippetContent, language: store.snippets[index].language)
                                     // Trigger update to store
                                     store.snippets[index].content = editingSnippetContent

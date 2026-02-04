@@ -7,13 +7,77 @@ struct CodeFormatter {
         case "json":
             return formatJSON(code)
         case "xml", "html":
-            // Basic XML/HTML formatter could be complex; fallback to indent based on tags if possible, 
-            // or just simple line separation. For now, let's try a simple XML parser if valid, or fallback.
             return formatXML(code)
+        case "python":
+            // Python relies on indentation, so we cannot safely re-indent flattened code without a full parser.
+            // We will perform safe cleanup: trim trailing whitespace and ensure consistent line endings.
+            return formatPython(code)
+        case "shell", "bash", "sh":
+            return formatShell(code)
         default:
             // Fallback to a basic brace-based indenter for C-style languages (Swift, JS, CSS, etc.)
             return formatBraces(code)
         }
+    }
+    
+    private static func formatPython(_ code: String) -> String {
+        var formatted = ""
+        let lines = code.components(separatedBy: .newlines)
+        
+        for line in lines {
+            // Trim trailing whitespace only
+            var processedLine = line
+            while processedLine.hasSuffix(" ") {
+                processedLine = String(processedLine.dropLast())
+            }
+            formatted += processedLine + "\n"
+        }
+        
+        return formatted.trimmingCharacters(in: .newlines)
+    }
+    
+    private static func formatShell(_ code: String) -> String {
+        var formatted = ""
+        var indentLevel = 0
+        let indentStr = "    " // 4 spaces
+        
+        // Split by lines, trim whitespace
+        let lines = code.components(separatedBy: .newlines).map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
+        
+        for line in lines {
+            var currentIndentChange = 0
+            
+            // Check for closing keywords at start of line
+            if line.hasPrefix("fi") || line.hasPrefix("done") || line.hasPrefix("esac") || line.hasPrefix("}") || line.hasPrefix("]") {
+                indentLevel = max(0, indentLevel - 1)
+            }
+            
+            // Check for middle-keywords that dedent then indent (elif, else)
+            if line.hasPrefix("else") || line.hasPrefix("elif") {
+                // Temporarily reduce indent for this line only
+                let indentation = String(repeating: indentStr, count: max(0, indentLevel - 1))
+                formatted += indentation + line + "\n"
+            } else {
+                let indentation = String(repeating: indentStr, count: indentLevel)
+                formatted += indentation + line + "\n"
+            }
+            
+            // Check for opening keywords
+            // Basic heuristics for bash
+            if line.hasSuffix(" then") || line == "then" ||
+               line.hasSuffix(" do") || line == "do" ||
+               line.hasSuffix("{") || line.hasSuffix("(") {
+                currentIndentChange += 1
+            }
+            // Case statement structure is tricky, ignoring for simple heuristic or treating 'case' as indent
+            if line.hasPrefix("case ") && line.hasSuffix(" in") {
+                currentIndentChange += 1
+            }
+            
+            indentLevel += currentIndentChange
+        }
+        
+        return formatted.trimmingCharacters(in: .newlines)
     }
     
     private static func formatJSON(_ code: String) -> String {
