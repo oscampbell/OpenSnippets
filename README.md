@@ -9,6 +9,7 @@ A macOS application for storing, managing, and quickly accessing code snippets. 
 ## Features
 
 -   **Favorites & Pinning:** Mark your most frequently used snippets as favorites to keep them pinned to the top of your list for instant access.
+-   **Menu Bar Companion:** access your snippets from anywhere using the menu bar icon. Search, preview, and click to copy snippets without breaking your workflow.
 -   **Snippet Duplication:** Quickly clone existing snippets using the "Duplicate" toolbar button, a context menu item (right-click), or the `Cmd + D` keyboard shortcut.
 -   **Editor Zoom Controls:** Easily adjust the font size of the code editor using standard keyboard shortcuts (`Cmd +` to zoom in, `Cmd -` to zoom out, `Cmd 0` to reset), or via the **View** menu.
 -   **Improved UI/UX**: Experience a refreshed design with intuitive navigation, redesigned theme settings, and overall aesthetic enhancements for a smoother workflow.
