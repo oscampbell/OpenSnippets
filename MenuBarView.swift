@@ -52,6 +52,21 @@ struct MenuBarView: View {
                             .font(.caption)
                             .foregroundColor(.secondary)
                             .lineLimit(1)
+                        
+                        if !snippet.tags.isEmpty {
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 4) {
+                                    ForEach(snippet.tags, id: \.self) { tag in
+                                        Text("#\(tag)")
+                                            .font(.system(size: 9))
+                                            .padding(.horizontal, 4)
+                                            .padding(.vertical, 1)
+                                            .background(Color.secondary.opacity(0.1))
+                                            .cornerRadius(3)
+                                    }
+                                }
+                            }
+                        }
                     }
                     
                     Spacer()

@@ -61,6 +61,23 @@ struct ContentView: View {
                                     Text(snippet.content)
                                         .lineLimit(1)
                                         .foregroundColor(themeSettings.currentTheme.textColor.color.opacity(0.6))
+                                    
+                                    if !snippet.tags.isEmpty {
+                                        ScrollView(.horizontal, showsIndicators: false) {
+                                            HStack {
+                                                ForEach(snippet.tags, id: \.self) { tag in
+                                                    Text("#\(tag)")
+                                                        .font(.caption2)
+                                                        .padding(.horizontal, 6)
+                                                        .padding(.vertical, 2)
+                                                        .background(themeSettings.currentTheme.secondaryAccentColor.color.opacity(0.2))
+                                                        .foregroundColor(themeSettings.currentTheme.secondaryAccentColor.color)
+                                                        .cornerRadius(4)
+                                                }
+                                            }
+                                        }
+                                        .frame(height: 20)
+                                    }
                                 }
                                 Spacer()
                                 if snippet.isFavorite {
@@ -154,6 +171,26 @@ struct ContentView: View {
                             .foregroundColor(themeSettings.currentTheme.textColor.color)
                             .tint(themeSettings.currentTheme.secondaryAccentColor.color)
                             .padding(.horizontal, -4) // Adjust padding to align with TextField
+
+                            // Tags Input
+                            HStack {
+                                Image(systemName: "tag")
+                                    .foregroundColor(themeSettings.currentTheme.secondaryAccentColor.color)
+                                TextField("Tags (comma separated)", text: Binding(
+                                    get: {
+                                        store.snippets[index].tags.joined(separator: ", ")
+                                    },
+                                    set: { newValue in
+                                        store.snippets[index].tags = newValue
+                                            .split(separator: ",")
+                                            .map { $0.trimmingCharacters(in: .whitespaces) }
+                                            .filter { !$0.isEmpty }
+                                    }
+                                ))
+                                .textFieldStyle(.plain)
+                                .foregroundColor(themeSettings.currentTheme.textColor.color)
+                            }
+                            .padding(.vertical, 4)
 
                             SpellCheckingTextEditor(
                                 text: $editingSnippetContent,

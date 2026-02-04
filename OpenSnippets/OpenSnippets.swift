@@ -7,6 +7,7 @@ struct Snippet: Identifiable, Codable, Equatable, Hashable {
     var markdownContent: String? // New property for rich text
     var language: String // New property for syntax highlighting language (e.g., "plaintext", "swift", "python")
     var isFavorite: Bool // New property for pinning/favoriting
+    var tags: [String] // New property for organization
     var createdAt: Date
     var updatedAt: Date
 
@@ -17,6 +18,7 @@ struct Snippet: Identifiable, Codable, Equatable, Hashable {
         self.markdownContent = nil
         self.language = language // Initialize new property
         self.isFavorite = false
+        self.tags = []
         self.createdAt = Date()
         self.updatedAt = Date()
     }
@@ -24,7 +26,7 @@ struct Snippet: Identifiable, Codable, Equatable, Hashable {
     // MARK: - Codable Implementation for Backward Compatibility
 
     enum CodingKeys: String, CodingKey {
-        case id, title, content, markdownContent, language, isFavorite, createdAt, updatedAt
+        case id, title, content, markdownContent, language, isFavorite, tags, createdAt, updatedAt
     }
 
     init(from decoder: Decoder) throws {
@@ -35,6 +37,7 @@ struct Snippet: Identifiable, Codable, Equatable, Hashable {
         markdownContent = try container.decodeIfPresent(String.self, forKey: .markdownContent)
         language = try container.decode(String.self, forKey: .language)
         isFavorite = try container.decodeIfPresent(Bool.self, forKey: .isFavorite) ?? false
+        tags = try container.decodeIfPresent([String].self, forKey: .tags) ?? []
         createdAt = try container.decode(Date.self, forKey: .createdAt)
         updatedAt = try container.decode(Date.self, forKey: .updatedAt)
     }
@@ -47,6 +50,7 @@ struct Snippet: Identifiable, Codable, Equatable, Hashable {
         try container.encode(markdownContent, forKey: .markdownContent)
         try container.encode(language, forKey: .language)
         try container.encode(isFavorite, forKey: .isFavorite)
+        try container.encode(tags, forKey: .tags)
         try container.encode(createdAt, forKey: .createdAt)
         try container.encode(updatedAt, forKey: .updatedAt)
     }
