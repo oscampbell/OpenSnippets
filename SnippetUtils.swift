@@ -26,12 +26,10 @@ struct SnippetUtils {
         result = result.replacingOccurrences(of: "{{datetime}}",
                                              with: dateTimeFormatter.string(from: now))
 
-        /*
         if let clipboard = NSPasteboard.general.string(forType: .string) {
             result = result.replacingOccurrences(of: "{{clipboard}}",
                                                  with: clipboard)
         }
-        */
 
         return result
     }

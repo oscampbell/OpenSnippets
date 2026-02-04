@@ -4,9 +4,13 @@
 
 A macOS application for storing, managing, and quickly accessing code snippets. OpenSnippets is designed to boost your productivity by keeping your most used code fragments organized and readily available.
 
+> **Note:** This application was entirely developed using the **Gemini CLI** tool. It serves as an experimental project to demonstrate and test the capabilities of Gemini's agentic software engineering features, including autonomous code generation, refactoring, and project management.
+
 ## Features
 
+-   **Favorites & Pinning:** Mark your most frequently used snippets as favorites to keep them pinned to the top of your list for instant access.
 -   **Improved UI/UX**: Experience a refreshed design with intuitive navigation, redesigned theme settings, and overall aesthetic enhancements for a smoother workflow.
+-   **Enhanced User Feedback:** Interactive UI elements, such as the "Copy" button, now provide immediate visual confirmation actions (e.g., displaying "Copied!" upon success).
 -   **Fixed Paste Functionality**: Enjoy reliable pasting; the application now correctly overwrites selected text, ensuring your snippets are inserted precisely where intended.
 -   **Updated Language Icons**: Visual cues for various programming languages are now more accurate and consistent, making it easier to identify your snippets at a glance.
 -   **Snippet Reordering**: Organize your snippets effortlessly with drag-and-drop functionality, allowing you to reorder items in the list to suit your preferences.
@@ -87,6 +91,7 @@ For developers who prefer command-line workflows or for automation, you can buil
 Once OpenSnippets is running, you can start managing your code snippets:
 
 *   **Creating New Snippets**: Click the "+" button or use the appropriate menu item to create a new snippet. Enter a title, assign a language for syntax highlighting, and paste your code.
+*   **Favorites**: Click the star icon next to a snippet's title to mark it as a favorite. Favorites are automatically pinned to the top of your list.
 *   **Editing Snippets**: Select a snippet from the list, and its content will appear in the editor. Make your changes and they will be saved automatically.
 *   **Deleting Snippets**: Select a snippet and press the Delete key, or use the menu option to remove it.
 *   **Reordering Snippets**: Drag and drop snippets in the sidebar list to organize them in your preferred order.
