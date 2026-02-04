@@ -12,6 +12,7 @@ struct ContentView: View {
     @State private var showingThemeSettings = false
     @State private var editingSnippetContent: String = ""
     @State private var showingCopyFeedback = false // Feedback state
+    @State private var isPreviewMode = false // Preview toggle state
 
     var isClipboardEmpty: Bool {
         NSPasteboard.general.string(forType: .string) == nil
@@ -154,6 +155,18 @@ struct ContentView: View {
                                 }
                                 .buttonStyle(.plain)
                                 .help("Toggle Favorite")
+                                
+                                Button {
+                                    withAnimation {
+                                        isPreviewMode.toggle()
+                                    }
+                                } label: {
+                                    Image(systemName: isPreviewMode ? "eye.slash" : "eye")
+                                        .foregroundColor(themeSettings.currentTheme.textColor.color)
+                                        .font(.title2)
+                                }
+                                .buttonStyle(.plain)
+                                .help(isPreviewMode ? "Edit Mode" : "Preview Markdown")
                             }
 
                             Picker("Language", selection: $store.snippets[index].language) {
@@ -192,22 +205,38 @@ struct ContentView: View {
                             }
                             .padding(.vertical, 4)
 
-                            SpellCheckingTextEditor(
-                                text: $editingSnippetContent,
-                                language: $store.snippets[index].language, // Passed language binding
-                                font: themedNSFont(style: .body, design: .monospaced),
-                                foregroundColor: NSColor(themeSettings.currentTheme.textColor.color),
-                                tintColor: NSColor(themeSettings.currentTheme.secondaryAccentColor.color)
-                            )
-                            .onChange(of: editingSnippetContent) { oldValue, newValue in
-                                store.snippets[index].content = newValue
+                            if isPreviewMode {
+                                ScrollView {
+                                    Text(LocalizedStringKey(editingSnippetContent))
+                                        .font(themedFont(style: .body))
+                                        .foregroundColor(themeSettings.currentTheme.textColor.color)
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                        .padding()
+                                }
+                                .background(themeSettings.currentTheme.snippetDetailBackgroundColor.color.opacity(0.6))
+                                .cornerRadius(8)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .stroke(themeSettings.currentTheme.secondaryAccentColor.color, lineWidth: 1)
+                                )
+                            } else {
+                                SpellCheckingTextEditor(
+                                    text: $editingSnippetContent,
+                                    language: $store.snippets[index].language, // Passed language binding
+                                    font: themedNSFont(style: .body, design: .monospaced),
+                                    foregroundColor: NSColor(themeSettings.currentTheme.textColor.color),
+                                    tintColor: NSColor(themeSettings.currentTheme.secondaryAccentColor.color)
+                                )
+                                .onChange(of: editingSnippetContent) { oldValue, newValue in
+                                    store.snippets[index].content = newValue
+                                }
+                                .background(themeSettings.currentTheme.snippetDetailBackgroundColor.color.opacity(0.6))
+                                .cornerRadius(8)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .stroke(themeSettings.currentTheme.secondaryAccentColor.color, lineWidth: 1)
+                                )
                             }
-                            .background(themeSettings.currentTheme.snippetDetailBackgroundColor.color.opacity(0.6))
-                            .cornerRadius(8)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .stroke(themeSettings.currentTheme.secondaryAccentColor.color, lineWidth: 1)
-                            )
 
                             HStack {
                                 Button {

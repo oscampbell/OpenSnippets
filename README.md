@@ -9,6 +9,7 @@ A macOS application for storing, managing, and quickly accessing code snippets. 
 ## Features
 
 -   **Favorites & Pinning:** Mark your most frequently used snippets as favorites to keep them pinned to the top of your list for instant access.
+-   **Markdown Preview:** Toggle between Edit and Preview modes to render your snippet content as Markdown. Ideal for keeping formatted notes or documentation alongside your code.
 -   **Tagging System:** Organize your snippets with tags (e.g., `#swift`, `#work`, `#utility`). Add multiple comma-separated tags in the editor, and see them displayed as chips in the snippet list.
 -   **Menu Bar Companion:** access your snippets from anywhere using the menu bar icon. Search, preview, and click to copy snippets without breaking your workflow.
 -   **Snippet Duplication:** Quickly clone existing snippets using the "Duplicate" toolbar button, a context menu item (right-click), or the `Cmd + D` keyboard shortcut.
