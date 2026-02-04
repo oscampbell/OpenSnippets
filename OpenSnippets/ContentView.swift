@@ -13,6 +13,7 @@ struct ContentView: View {
     @State private var editingSnippetContent: String = ""
     @State private var showingCopyFeedback = false // Feedback state
     @State private var isPreviewMode = false // Preview toggle state
+    @State private var showingCommandPalette = false // Command Palette state
 
     var isClipboardEmpty: Bool {
         NSPasteboard.general.string(forType: .string) == nil
@@ -343,6 +344,12 @@ struct ContentView: View {
                     Label("Help", systemImage: "questionmark.circle")
                 }
                 .buttonStyle(SecondaryThemedButtonStyle())
+                
+                Button { showingCommandPalette.toggle() } label: {
+                    Label("Quick Open", systemImage: "command")
+                }
+                .buttonStyle(SecondaryThemedButtonStyle())
+                .keyboardShortcut("p", modifiers: [.command, .shift])
             }
         }
         .sheet(isPresented: $showingHelp) {
@@ -350,6 +357,20 @@ struct ContentView: View {
         }
         .sheet(isPresented: $showingThemeSettings) { // Sheet for Theme Settings
             ThemeSettingsView()
+        }
+        .overlay {
+            if showingCommandPalette {
+                Color.black.opacity(0.3)
+                    .edgesIgnoringSafeArea(.all)
+                    .onTapGesture {
+                        showingCommandPalette = false
+                    }
+                
+                CommandPaletteView(isPresented: $showingCommandPalette)
+                    .environmentObject(store)
+                    .frame(width: 500)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+            }
         }
         .alert("Delete Snippet", isPresented: $showingDeleteConfirmation) {
             Button("Delete", role: .destructive) {
