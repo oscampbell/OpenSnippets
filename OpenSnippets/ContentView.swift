@@ -73,6 +73,23 @@ struct ContentView: View {
                                 copy(snippet.content)
                             }
                             .tag(snippet.id)
+                            .contextMenu {
+                                Button {
+                                    selectedIDs = [snippet.id]
+                                    duplicateSnippet()
+                                } label: {
+                                    Label("Duplicate", systemImage: "plus.square.on.square")
+                                }
+                                
+                                Divider()
+                                
+                                Button(role: .destructive) {
+                                    selectedIDs = [snippet.id]
+                                    showingDeleteConfirmation = true
+                                } label: {
+                                    Label("Delete", systemImage: "trash")
+                                }
+                            }
                         }
                         // Note: onMove logic needs adjustment if we are sorting.
                         // Standard list reordering conflicts with auto-sorting.
@@ -225,6 +242,13 @@ struct ContentView: View {
                 .buttonStyle(PrimaryThemedButtonStyle())
                 .keyboardShortcut("n", modifiers: [.command])
 
+                Button(action: duplicateSnippet) {
+                    Label("Duplicate", systemImage: "plus.square.on.square")
+                }
+                .buttonStyle(SecondaryThemedButtonStyle())
+                .disabled(selectedIDs.count != 1)
+                .keyboardShortcut("d", modifiers: [.command])
+
                 Button(action: { showingDeleteConfirmation = true }) {
                     Label("Delete", systemImage: "trash")
                 }
@@ -331,6 +355,19 @@ struct ContentView: View {
         let snippet = Snippet(title: "New Snippet", content: "")
         store.snippets.insert(snippet, at: 0)
         selectedIDs = [snippet.id]
+    }
+
+    func duplicateSnippet() {
+        guard let id = selectedIDs.first,
+              let index = store.snippets.firstIndex(where: { $0.id == id }) else { return }
+        
+        let original = store.snippets[index]
+        var copy = Snippet(title: "\(original.title) Copy", content: original.content, language: original.language)
+        copy.markdownContent = original.markdownContent
+        copy.isFavorite = original.isFavorite
+        
+        store.snippets.insert(copy, at: index + 1)
+        selectedIDs = [copy.id]
     }
     
     func toggleFavorite(for snippet: Snippet) {
