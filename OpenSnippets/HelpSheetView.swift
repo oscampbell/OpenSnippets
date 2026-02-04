@@ -41,11 +41,29 @@ struct HelpSheetView: View {
 
                         Divider().background(themeSettings.currentTheme.textColor.color.opacity(0.2))
 
-                        VStack(alignment: .leading, spacing: 8) {
-                            Label("Create a new snippet: ⌘N", systemImage: "plus.circle")
-                            Label("Delete selected snippet: ⌘⌫", systemImage: "trash")
-                            Label("Copy snippet: ⌘C or double-click", systemImage: "doc.on.doc")
-                            Label("Search snippets: type in the search box", systemImage: "magnifyingglass")
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text("Keyboard Shortcuts & Features")
+                                .font(themedFont(style: .headline))
+                                .foregroundColor(themeSettings.currentTheme.textColor.color)
+                            
+                            Group {
+                                Label("Quick Open Palette: ⇧⌘P", systemImage: "command")
+                                Label("Create a new snippet: ⌘N", systemImage: "plus.circle")
+                                Label("Duplicate snippet: ⌘D", systemImage: "plus.square.on.square")
+                                Label("Delete selected: ⌘⌫", systemImage: "trash")
+                                Label("Copy snippet: ⌘C or double-click", systemImage: "doc.on.doc")
+                                Label("Zoom In/Out: ⌘+ / ⌘- (Reset: ⌘0)", systemImage: "magnifyingglass.circle")
+                            }
+                            
+                            Divider().background(themeSettings.currentTheme.textColor.color.opacity(0.2)).padding(.vertical, 4)
+                            
+                            Group {
+                                Label("Favorites: Click the star to pin snippets to top", systemImage: "star.fill")
+                                Label("Markdown: Toggle preview with the eye icon", systemImage: "eye")
+                                Label("Tags: Add #tags via the input field", systemImage: "tag")
+                                Label("Gist: Import from URL in the toolbar", systemImage: "icloud.and.arrow.down")
+                                Label("Menu Bar: Access all snippets from system icon", systemImage: "hammer.fill")
+                            }
                         }
                         .foregroundColor(themeSettings.currentTheme.textColor.color.opacity(0.9))
                         .font(themedFont(style: .body))

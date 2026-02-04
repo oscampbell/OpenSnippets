@@ -7,6 +7,7 @@ struct CommandPaletteView: View {
     
     @State private var query = ""
     @State private var selectedIndex = 0
+    @FocusState private var isFocused: Bool
     
     var filteredSnippets: [Snippet] {
         if query.isEmpty {
@@ -26,12 +27,29 @@ struct CommandPaletteView: View {
                 TextField("Type to search snippets...", text: $query)
                     .textFieldStyle(.plain)
                     .font(.title3)
+                    .focused($isFocused)
                     .onSubmit {
                         selectAndClose()
                     }
             }
             .padding()
             .background(Color(nsColor: .windowBackgroundColor))
+            .onAppear {
+                isFocused = true
+            }
+            .onExitCommand {
+                isPresented = false
+            }
+            .onMoveCommand { direction in
+                switch direction {
+                case .down:
+                    selectedIndex = min(selectedIndex + 1, filteredSnippets.count - 1)
+                case .up:
+                    selectedIndex = max(selectedIndex - 1, 0)
+                default:
+                    break
+                }
+            }
             
             Divider()
             
