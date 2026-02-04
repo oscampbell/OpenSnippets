@@ -148,85 +148,92 @@ struct ContentView: View {
                     if let firstSelectedID = selectedIDs.first, // Get the first selected ID
                        let index = store.snippets.firstIndex(where: { $0.id == firstSelectedID }) {
 
-                        VStack(alignment: .leading, spacing: 12) {
-                            HStack {
+                        VStack(alignment: .leading, spacing: 16) {
+                            // Header: Title and Top Actions
+                            HStack(alignment: .center) {
                                 TextField("Title", text: $store.snippets[index].title)
-                                    .font(themedFont(style: .title2)) // Use themed font
+                                    .font(themedFont(style: .title2).weight(.semibold))
                                     .textFieldStyle(.plain)
                                     .foregroundColor(themeSettings.currentTheme.textColor.color)
                                     .tint(themeSettings.currentTheme.secondaryAccentColor.color)
                                 
                                 Spacer()
                                 
-                                Button {
-                                    toggleFavorite(for: store.snippets[index])
-                                } label: {
-                                    Image(systemName: store.snippets[index].isFavorite ? "star.fill" : "star")
-                                        .foregroundColor(store.snippets[index].isFavorite ? .yellow : themeSettings.currentTheme.textColor.color.opacity(0.5))
-                                        .font(.title2)
-                                }
-                                .buttonStyle(.plain)
-                                .help("Toggle Favorite")
-                                
-                                Button {
-                                    withAnimation {
-                                        isPreviewMode.toggle()
+                                // Top Actions Toolbar
+                                HStack(spacing: 0) {
+                                    Button {
+                                        toggleFavorite(for: store.snippets[index])
+                                    } label: {
+                                        Image(systemName: store.snippets[index].isFavorite ? "star.fill" : "star")
+                                            .foregroundColor(store.snippets[index].isFavorite ? .yellow : themeSettings.currentTheme.textColor.color)
                                     }
-                                } label: {
-                                    Image(systemName: isPreviewMode ? "eye.slash" : "eye")
-                                        .foregroundColor(themeSettings.currentTheme.textColor.color)
-                                        .font(.title2)
-                                }
-                                .buttonStyle(.plain)
-                                .help(isPreviewMode ? "Edit Mode" : "Preview Markdown")
-                                
-                                Button {
-                                    let originalContent = editingSnippetContent
+                                    .buttonStyle(ToolbarIconButtonStyle())
+                                    .help("Toggle Favorite")
                                     
-                                    // Register Undo
-                                    undoManager?.registerUndo(withTarget: store) { _ in
-                                        if let undoIndex = store.snippets.firstIndex(where: { $0.id == firstSelectedID }) {
-                                            store.snippets[undoIndex].content = originalContent
-                                            // We also need to update the local editing state if we are currently editing this snippet
-                                            if selectedIDs.contains(firstSelectedID) {
-                                                editingSnippetContent = originalContent
+                                    Divider().frame(height: 16)
+                                    
+                                    Button {
+                                        withAnimation { isPreviewMode.toggle() }
+                                    } label: {
+                                        Image(systemName: isPreviewMode ? "eye.slash" : "eye")
+                                            .foregroundColor(themeSettings.currentTheme.textColor.color)
+                                    }
+                                    .buttonStyle(ToolbarIconButtonStyle())
+                                    .help(isPreviewMode ? "Edit Mode" : "Preview Markdown")
+                                    
+                                    Divider().frame(height: 16)
+                                    
+                                    Button {
+                                        // Format Action logic duplicated here for self-contained block or refactor
+                                        let originalContent = editingSnippetContent
+                                        undoManager?.registerUndo(withTarget: store) { _ in
+                                            if let undoIndex = store.snippets.firstIndex(where: { $0.id == firstSelectedID }) {
+                                                store.snippets[undoIndex].content = originalContent
+                                                if selectedIDs.contains(firstSelectedID) {
+                                                    editingSnippetContent = originalContent
+                                                }
                                             }
                                         }
+                                        editingSnippetContent = CodeFormatter.format(editingSnippetContent, language: store.snippets[index].language)
+                                        store.snippets[index].content = editingSnippetContent
+                                    } label: {
+                                        Image(systemName: "wand.and.stars")
+                                            .foregroundColor(themeSettings.currentTheme.textColor.color)
                                     }
-                                    
-                                    editingSnippetContent = CodeFormatter.format(editingSnippetContent, language: store.snippets[index].language)
-                                    // Trigger update to store
-                                    store.snippets[index].content = editingSnippetContent
-                                } label: {
-                                    Image(systemName: "wand.and.stars")
-                                        .foregroundColor(themeSettings.currentTheme.textColor.color)
-                                        .font(.title2)
+                                    .buttonStyle(ToolbarIconButtonStyle())
+                                    .help("Format Code")
                                 }
-                                .buttonStyle(.plain)
-                                .help("Format Code")
+                                .padding(4)
+                                .background(Color.black.opacity(0.2))
+                                .cornerRadius(8)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .stroke(Color.white.opacity(0.1), lineWidth: 0.5)
+                                )
                             }
 
-                            Picker("Language", selection: $store.snippets[index].language) {
-                                Text("Plain Text").tag("plaintext")
-                                Text("Swift").tag("swift")
-                                Text("Python").tag("python")
-                                Text("JavaScript").tag("javascript")
-                                Text("HTML").tag("html")
-                                Text("CSS").tag("css")
-                                Text("JSON").tag("json")
-                                Text("Bash/Shell").tag("shell") // Added Bash/Shell
-                                // Add more languages as needed
-                            }
-                            .pickerStyle(.menu)
-                            .foregroundColor(themeSettings.currentTheme.textColor.color)
-                            .tint(themeSettings.currentTheme.secondaryAccentColor.color)
-                            .padding(.horizontal, -4) // Adjust padding to align with TextField
-
-                            // Tags Input
+                            // Metadata Row: Language and Tags
                             HStack {
+                                Picker("", selection: $store.snippets[index].language) {
+                                    Text("Plain Text").tag("plaintext")
+                                    Text("Swift").tag("swift")
+                                    Text("Python").tag("python")
+                                    Text("JavaScript").tag("javascript")
+                                    Text("HTML").tag("html")
+                                    Text("CSS").tag("css")
+                                    Text("JSON").tag("json")
+                                    Text("Bash/Shell").tag("shell")
+                                }
+                                .pickerStyle(.menu)
+                                .frame(width: 120)
+                                .tint(themeSettings.currentTheme.secondaryAccentColor.color)
+                                
+                                Spacer()
+                                
                                 Image(systemName: "tag")
-                                    .foregroundColor(themeSettings.currentTheme.secondaryAccentColor.color)
-                                TextField("Tags (comma separated)", text: Binding(
+                                    .foregroundColor(themeSettings.currentTheme.secondaryAccentColor.color.opacity(0.7))
+                                    .font(.caption)
+                                TextField("Add tags...", text: Binding(
                                     get: {
                                         store.snippets[index].tags.joined(separator: ", ")
                                     },
@@ -238,7 +245,8 @@ struct ContentView: View {
                                     }
                                 ))
                                 .textFieldStyle(.plain)
-                                .foregroundColor(themeSettings.currentTheme.textColor.color)
+                                .font(.caption)
+                                .foregroundColor(themeSettings.currentTheme.textColor.color.opacity(0.8))
                             }
                             .padding(.vertical, 4)
 
@@ -324,9 +332,32 @@ struct ContentView: View {
                         }
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                     } else { // No selection
-                        VStack {
-                            Text("Select or create a snippet")
-                                .foregroundColor(themeSettings.currentTheme.textColor.color.opacity(0.6))
+                        VStack(spacing: 20) {
+                            Image(systemName: "doc.text.image")
+                                .font(.system(size: 64))
+                                .foregroundColor(themeSettings.currentTheme.textColor.color.opacity(0.2))
+                            
+                            VStack(spacing: 8) {
+                                Text("No Snippet Selected")
+                                    .font(.title2)
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(themeSettings.currentTheme.textColor.color)
+                                
+                                Text("Select a snippet from the list or create a new one to get started.")
+                                    .font(.body)
+                                    .foregroundColor(themeSettings.currentTheme.textColor.color.opacity(0.6))
+                                    .multilineTextAlignment(.center)
+                                    .padding(.horizontal)
+                            }
+                            
+                            Button(action: newSnippet) {
+                                Label("Create New Snippet", systemImage: "plus")
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 8)
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .controlSize(.large)
+                            .tint(themeSettings.currentTheme.primaryAccentColor.color)
                         }
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                     }
@@ -335,7 +366,7 @@ struct ContentView: View {
             .frame(minWidth: 400)
             .layoutPriority(1)
         }
-        .frame(minWidth: 700, minHeight: 400)
+        .frame(minWidth: 900, minHeight: 600)
         .accentColor(themeSettings.currentTheme.primaryAccentColor.color) // global accent color
         .toolbar {
             ToolbarItemGroup(placement: .primaryAction) {
@@ -655,4 +686,15 @@ struct ContentView: View {
         }
     }
 }
+
+struct ToolbarIconButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .padding(6)
+            .background(configuration.isPressed ? Color.white.opacity(0.1) : Color.clear)
+            .cornerRadius(4)
+            .contentShape(Rectangle())
+    }
+}
+
 

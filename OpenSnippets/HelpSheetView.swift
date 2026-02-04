@@ -116,13 +116,11 @@ struct HelpSheetView: View {
                     )
                     .shadow(color: .black.opacity(0.5), radius: 20, x: 0, y: 10)
                 }
-                .scrollBounceBehavior(.basedOnSize)
-                .padding(EdgeInsets(top: 20, leading: 16, bottom: 20, trailing: 16))
-                .frame(minWidth: 660, idealWidth: 800, maxWidth: .infinity, minHeight: 450, idealHeight: 500, maxHeight: .infinity)
+                .padding(30)
             }
-            .scrollIndicators(.automatic)
+            .scrollIndicators(.visible)
         }
-        .presentationSizing(.fitted)
+        .frame(minWidth: 600, minHeight: 500)
     }
 
     private func themedNSFont(style: Font.TextStyle, design: Font.Design = .default) -> NSFont {
