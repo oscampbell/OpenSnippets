@@ -75,4 +75,20 @@ class ThemeSettings: ObservableObject {
             self.currentTheme = AppTheme.defaultTheme
         }
     }
+
+    // MARK: - Font Zoom Actions
+
+    func increaseFontSize() {
+        let newSize = min(currentTheme.fontSize + 1, 36.0)
+        currentTheme.fontSize = newSize
+    }
+
+    func decreaseFontSize() {
+        let newSize = max(currentTheme.fontSize - 1, 8.0)
+        currentTheme.fontSize = newSize
+    }
+
+    func resetFontSize() {
+        currentTheme.fontSize = 14.0
+    }
 }

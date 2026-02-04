@@ -22,6 +22,26 @@ struct SnippetsApp: App {
                 }
         }
         .windowStyle(.titleBar)
+        .commands {
+            CommandGroup(after: .sidebar) {
+                Divider()
+                Button("Zoom In") {
+                    themeSettings.increaseFontSize()
+                }
+                .keyboardShortcut("+", modifiers: .command)
+
+                Button("Zoom Out") {
+                    themeSettings.decreaseFontSize()
+                }
+                .keyboardShortcut("-", modifiers: .command)
+
+                Button("Actual Size") {
+                    themeSettings.resetFontSize()
+                }
+                .keyboardShortcut("0", modifiers: .command)
+            }
+            SidebarCommands() // Standard sidebar commands
+        }
 
         // A settings scene that doesn't display any content but is needed for some app setup
         Settings {

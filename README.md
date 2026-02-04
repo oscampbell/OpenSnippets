@@ -9,6 +9,7 @@ A macOS application for storing, managing, and quickly accessing code snippets. 
 ## Features
 
 -   **Favorites & Pinning:** Mark your most frequently used snippets as favorites to keep them pinned to the top of your list for instant access.
+-   **Editor Zoom Controls:** Easily adjust the font size of the code editor using standard keyboard shortcuts (`Cmd +` to zoom in, `Cmd -` to zoom out, `Cmd 0` to reset), or via the **View** menu.
 -   **Improved UI/UX**: Experience a refreshed design with intuitive navigation, redesigned theme settings, and overall aesthetic enhancements for a smoother workflow.
 -   **Enhanced User Feedback:** Interactive UI elements, such as the "Copy" button, now provide immediate visual confirmation actions (e.g., displaying "Copied!" upon success).
 -   **Fixed Paste Functionality**: Enjoy reliable pasting; the application now correctly overwrites selected text, ensuring your snippets are inserted precisely where intended.
@@ -93,6 +94,7 @@ Once OpenSnippets is running, you can start managing your code snippets:
 *   **Creating New Snippets**: Click the "+" button or use the appropriate menu item to create a new snippet. Enter a title, assign a language for syntax highlighting, and paste your code.
 *   **Favorites**: Click the star icon next to a snippet's title to mark it as a favorite. Favorites are automatically pinned to the top of your list.
 *   **Editing Snippets**: Select a snippet from the list, and its content will appear in the editor. Make your changes and they will be saved automatically.
+*   **Zooming**: Use `Cmd +`, `Cmd -`, or `Cmd 0` to adjust the editor's font size for better readability.
 *   **Deleting Snippets**: Select a snippet and press the Delete key, or use the menu option to remove it.
 *   **Reordering Snippets**: Drag and drop snippets in the sidebar list to organize them in your preferred order.
 *   **Dynamic Variables**: Utilize `{{date}}`, `{{time}}`, `{{datetime}}`, and `{{clipboard}}` in your snippet content. When you copy the snippet to the clipboard, these placeholders will be automatically expanded with their respective values.
