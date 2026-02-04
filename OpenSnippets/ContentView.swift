@@ -14,6 +14,8 @@ struct ContentView: View {
     @State private var showingCopyFeedback = false // Feedback state
     @State private var isPreviewMode = false // Preview toggle state
     @State private var showingCommandPalette = false // Command Palette state
+    @State private var showingGistImport = false // Gist Import state
+    @State private var gistURL = ""
 
     var isClipboardEmpty: Bool {
         NSPasteboard.general.string(forType: .string) == nil
@@ -326,7 +328,12 @@ struct ContentView: View {
 
             ToolbarItemGroup(placement: .secondaryAction) {
                 Button(action: importSnippets) {
-                    Label("Import", systemImage: "square.and.arrow.down")
+                    Label("Import JSON", systemImage: "square.and.arrow.down")
+                }
+                .buttonStyle(SecondaryThemedButtonStyle())
+                
+                Button(action: { showingGistImport = true }) {
+                    Label("Import Gist", systemImage: "icloud.and.arrow.down")
                 }
                 .buttonStyle(SecondaryThemedButtonStyle())
 
@@ -371,6 +378,15 @@ struct ContentView: View {
                     .frame(width: 500)
                     .transition(.move(edge: .top).combined(with: .opacity))
             }
+        }
+        .alert("Import from GitHub Gist", isPresented: $showingGistImport) {
+            TextField("Gist URL", text: $gistURL)
+            Button("Import") {
+                importGist(from: gistURL)
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("Enter the full URL of a public GitHub Gist.")
         }
         .alert("Delete Snippet", isPresented: $showingDeleteConfirmation) {
             Button("Delete", role: .destructive) {
@@ -436,6 +452,41 @@ struct ContentView: View {
                 }
             }
         }
+    }
+    
+    func importGist(from urlString: String) {
+        guard let url = URL(string: urlString) else { return }
+        let lastPathComponent = url.lastPathComponent
+        let gistID = lastPathComponent // simplistic extraction
+        
+        guard !gistID.isEmpty else { return }
+        
+        let apiURL = URL(string: "https://api.github.com/gists/\(gistID)")!
+        
+        URLSession.shared.dataTask(with: apiURL) { data, response, error in
+            if let data = data {
+                do {
+                    // Quick and dirty JSON parsing for Gist structure
+                    if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+                       let files = json["files"] as? [String: Any] {
+                        
+                        DispatchQueue.main.async {
+                            for (filename, fileData) in files {
+                                if let fileInfo = fileData as? [String: Any],
+                                   let content = fileInfo["content"] as? String {
+                                    
+                                    let language = (fileInfo["language"] as? String)?.lowercased() ?? "plaintext"
+                                    let snippet = Snippet(title: filename, content: content, language: language)
+                                    store.snippets.insert(snippet, at: 0)
+                                }
+                            }
+                        }
+                    }
+                } catch {
+                    print("Error parsing Gist: \(error)")
+                }
+            }
+        }.resume()
     }
 
     func newSnippet() {
