@@ -10,6 +10,8 @@ A macOS application for storing, managing, and quickly accessing code snippets. 
 
 -   **Favorites & Pinning:** Mark your most frequently used snippets as favorites to keep them pinned to the top of your list for instant access.
 -   **Quick Open:** Press `Cmd + Shift + P` to launch the command palette. Type to filter snippets by title or tags, use arrow keys to navigate, and press Return to copy immediately.
+-   **Code Beautifier:** Click the magic wand icon to instantly format and indent your code (supports JSON, HTML, and brace-based languages like Swift/JS).
+-   **Share as Image:** Export your snippets as beautiful, high-resolution images—perfect for sharing on social media. Right-click any snippet and choose "Share as Image".
 -   **GitHub Gist Import:** Quickly import code from public GitHub Gists. Simply click "Import Gist" in the toolbar, paste the Gist URL, and OpenSnippets will automatically fetch and save the files as new snippets.
 -   **Markdown Preview:** Toggle between Edit and Preview modes to render your snippet content as Markdown. Ideal for keeping formatted notes or documentation alongside your code.
 -   **Tagging System:** Organize your snippets with tags (e.g., `#swift`, `#work`, `#utility`). Add multiple comma-separated tags in the editor, and see them displayed as chips in the snippet list.

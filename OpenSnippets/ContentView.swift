@@ -110,6 +110,14 @@ struct ContentView: View {
                                 } label: {
                                     Label("Delete", systemImage: "trash")
                                 }
+                                
+                                Divider()
+                                
+                                Button {
+                                    exportAsImage(snippet: snippet)
+                                } label: {
+                                    Label("Share as Image", systemImage: "photo")
+                                }
                             }
                         }
                         // Note: onMove logic needs adjustment if we are sorting.
@@ -170,6 +178,18 @@ struct ContentView: View {
                                 }
                                 .buttonStyle(.plain)
                                 .help(isPreviewMode ? "Edit Mode" : "Preview Markdown")
+                                
+                                Button {
+                                    editingSnippetContent = CodeFormatter.format(editingSnippetContent, language: store.snippets[index].language)
+                                    // Trigger update to store
+                                    store.snippets[index].content = editingSnippetContent
+                                } label: {
+                                    Image(systemName: "wand.and.stars")
+                                        .foregroundColor(themeSettings.currentTheme.textColor.color)
+                                        .font(.title2)
+                                }
+                                .buttonStyle(.plain)
+                                .help("Format Code")
                             }
 
                             Picker("Language", selection: $store.snippets[index].language) {
@@ -487,6 +507,26 @@ struct ContentView: View {
                 }
             }
         }.resume()
+    }
+
+    func exportAsImage(snippet: Snippet) {
+        let cardView = SnippetCardView(snippet: snippet, theme: themeSettings.currentTheme)
+        let renderer = ImageRenderer(content: cardView)
+        renderer.scale = 2.0 // High res
+        
+        if let nsImage = renderer.nsImage {
+            let savePanel = NSSavePanel()
+            savePanel.allowedContentTypes = [.png]
+            savePanel.nameFieldStringValue = "\(snippet.title).png"
+            
+            if savePanel.runModal() == .OK, let url = savePanel.url {
+                if let tiffData = nsImage.tiffRepresentation,
+                   let bitmapImage = NSBitmapImageRep(data: tiffData),
+                   let pngData = bitmapImage.representation(using: .png, properties: [:]) {
+                    try? pngData.write(to: url)
+                }
+            }
+        }
     }
 
     func newSnippet() {
