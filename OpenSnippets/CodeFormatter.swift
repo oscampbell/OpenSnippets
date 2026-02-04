@@ -9,14 +9,22 @@ struct CodeFormatter {
         case "xml", "html":
             return formatXML(code)
         case "python":
-            // Python relies on indentation, so we cannot safely re-indent flattened code without a full parser.
-            // We will perform safe cleanup: trim trailing whitespace and ensure consistent line endings.
             return formatPython(code)
         case "shell", "bash", "sh":
             return formatShell(code)
         default:
-            // Fallback to a basic brace-based indenter for C-style languages (Swift, JS, CSS, etc.)
             return formatBraces(code)
+        }
+    }
+    
+    private static func formatJSON(_ code: String) -> String {
+        guard let data = code.data(using: .utf8) else { return code }
+        do {
+            let jsonObject = try JSONSerialization.jsonObject(with: data, options: [])
+            let prettyData = try JSONSerialization.data(withJSONObject: jsonObject, options: [.prettyPrinted, .sortedKeys])
+            return String(data: prettyData, encoding: .utf8) ?? code
+        } catch {
+            return code
         }
     }
     
@@ -25,7 +33,7 @@ struct CodeFormatter {
         let lines = code.components(separatedBy: .newlines)
         
         for line in lines {
-            // Trim trailing whitespace only
+            // Trim trailing whitespace
             var processedLine = line
             while processedLine.hasSuffix(" ") {
                 processedLine = String(processedLine.dropLast())
@@ -36,72 +44,20 @@ struct CodeFormatter {
         return formatted.trimmingCharacters(in: .newlines)
     }
     
-    private static func formatShell(_ code: String) -> String {
-        var formatted = ""
-        var indentLevel = 0
-        let indentStr = "    " // 4 spaces
-        
-        // Split by lines, trim whitespace
-        let lines = code.components(separatedBy: .newlines).map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
-        
-        for line in lines {
-            var currentIndentChange = 0
-            
-            // Check for closing keywords at start of line
-            if line.hasPrefix("fi") || line.hasPrefix("done") || line.hasPrefix("esac") || line.hasPrefix("}") || line.hasPrefix("]") {
-                indentLevel = max(0, indentLevel - 1)
-            }
-            
-            // Check for middle-keywords that dedent then indent (elif, else)
-            if line.hasPrefix("else") || line.hasPrefix("elif") {
-                // Temporarily reduce indent for this line only
-                let indentation = String(repeating: indentStr, count: max(0, indentLevel - 1))
-                formatted += indentation + line + "\n"
-            } else {
-                let indentation = String(repeating: indentStr, count: indentLevel)
-                formatted += indentation + line + "\n"
-            }
-            
-            // Check for opening keywords
-            // Basic heuristics for bash
-            if line.hasSuffix(" then") || line == "then" ||
-               line.hasSuffix(" do") || line == "do" ||
-               line.hasSuffix("{") || line.hasSuffix("(") {
-                currentIndentChange += 1
-            }
-            // Case statement structure is tricky, ignoring for simple heuristic or treating 'case' as indent
-            if line.hasPrefix("case ") && line.hasSuffix(" in") {
-                currentIndentChange += 1
-            }
-            
-            indentLevel += currentIndentChange
-        }
-        
-        return formatted.trimmingCharacters(in: .newlines)
-    }
+    // MARK: - C-Style Formatter (Swift, JS, CSS)
     
-    private static func formatJSON(_ code: String) -> String {
-        guard let data = code.data(using: .utf8) else { return code }
-        do {
-            let jsonObject = try JSONSerialization.jsonObject(with: data, options: [])
-            let prettyData = try JSONSerialization.data(withJSONObject: jsonObject, options: [.prettyPrinted, .sortedKeys])
-            return String(data: prettyData, encoding: .utf8) ?? code
-        } catch {
-            return code // Return original if invalid JSON
-        }
-    }
-    
-    // Very basic brace-based indenter
     private static func formatBraces(_ code: String) -> String {
+        // Step 1: "Explode" the code (add newlines) safely
+        let exploded = explodeCStyle(code)
+        
+        // Step 2: Indent
         var formatted = ""
         var indentLevel = 0
-        let indentStr = "    " // 4 spaces
+        let indentStr = "    "
         
-        // Split by lines, trim whitespace
-        let lines = code.components(separatedBy: .newlines).map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
+        let lines = exploded.components(separatedBy: .newlines).map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
         
         for line in lines {
-            // Decrease indent if line starts with } or ]
             if line.hasPrefix("}") || line.hasPrefix("]") {
                 indentLevel = max(0, indentLevel - 1)
             }
@@ -109,7 +65,6 @@ struct CodeFormatter {
             let indentation = String(repeating: indentStr, count: indentLevel)
             formatted += indentation + line + "\n"
             
-            // Increase indent if line ends with { or [
             if line.hasSuffix("{") || line.hasSuffix("[") {
                 indentLevel += 1
             }
@@ -118,37 +73,128 @@ struct CodeFormatter {
         return formatted.trimmingCharacters(in: .newlines)
     }
     
+    // Tokenizer-based exploder to safely insert newlines
+    private static func explodeCStyle(_ code: String) -> String {
+        var result = ""
+        var inString = false
+        var stringChar: Character? = nil
+        var escaped = false
+        
+        for char in code {
+            if inString {
+                result.append(char)
+                if escaped {
+                    escaped = false
+                } else if char == "\\" {
+                    escaped = true
+                } else if char == stringChar {
+                    inString = false
+                    stringChar = nil
+                }
+            } else {
+                if char == "\"" || char == "'" {
+                    inString = true
+                    stringChar = char
+                    result.append(char)
+                } else if char == "{" {
+                    result.append(" {\n")
+                } else if char == "}" {
+                    result.append("\n}\n")
+                } else if char == ";" {
+                    result.append(";\n")
+                } else {
+                    result.append(char)
+                }
+            }
+        }
+        return result
+    }
+    
+    // MARK: - HTML/XML Formatter
+    
     private static func formatXML(_ code: String) -> String {
-        // A very naive XML/HTML indenter
+        // Simple XML/HTML exploder
+        // Adds newline before < and after >
+        let exploded = code.replacingOccurrences(of: ">", with: ">\n")
+                           .replacingOccurrences(of: "<", with: "\n<")
+        
         var formatted = ""
         var indentLevel = 0
         let indentStr = "    "
         
-        // Regex to find tags
-        // This is a simplistic approach and won't handle all edge cases (like script tags, etc.)
-        let pattern = "(<[^>]+>|[^<]+)"
+        let lines = exploded.components(separatedBy: .newlines).map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
         
-        guard let regex = try? NSRegularExpression(pattern: pattern) else { return code }
-        let nsString = code as NSString
-        let results = regex.matches(in: code, range: NSRange(location: 0, length: nsString.length))
-        
-        for result in results {
-            let token = nsString.substring(with: result.range).trimmingCharacters(in: .whitespacesAndNewlines)
-            guard !token.isEmpty else { continue }
-            
-            if token.hasPrefix("</") {
-                // Closing tag
+        for line in lines {
+            if line.hasPrefix("</") {
                 indentLevel = max(0, indentLevel - 1)
             }
             
             let indentation = String(repeating: indentStr, count: indentLevel)
-            formatted += indentation + token + "\n"
+            formatted += indentation + line + "\n"
             
-            if token.hasPrefix("<") && !token.hasPrefix("</") && !token.hasSuffix("/>") && !token.hasPrefix("<!") && !token.hasPrefix("<?") {
-                // Opening tag (that isn't self-closing, comment, or doctype)
-                // Also ignore void tags in HTML if we were being strict, but this is generic.
-                indentLevel += 1
+            if line.hasPrefix("<") && !line.hasPrefix("</") && !line.hasSuffix("/>") && !line.hasPrefix("<!") && !line.hasPrefix("<?") {
+                // Check if it's not a void tag (HTML specific, imprecise but better than nothing)
+                let voidTags = ["<area", "<base", "<br", "<col", "<embed", "<hr", "<img", "<input", "<link", "<meta", "<param", "<source", "<track", "<wbr"]
+                let isVoid = voidTags.contains { line.hasPrefix($0) }
+                
+                if !isVoid {
+                    indentLevel += 1
+                }
             }
+        }
+        
+        return formatted.trimmingCharacters(in: .newlines)
+    }
+    
+    // MARK: - Shell Formatter
+    
+    private static func formatShell(_ code: String) -> String {
+        // Simple split on common separators
+        // Add newlines around key structural elements to ensure they are on their own lines or start lines
+        let exploded = code.replacingOccurrences(of: ";", with: ";\n")
+                           .replacingOccurrences(of: "&&", with: " &&\n")
+                           .replacingOccurrences(of: "||", with: " ||\n")
+                           .replacingOccurrences(of: "{", with: " {\n")
+                           .replacingOccurrences(of: "}", with: "\n}\n")
+                           .replacingOccurrences(of: " then", with: "\nthen\n") // Ensure 'then' breaks line
+                           .replacingOccurrences(of: "; then", with: ";\nthen\n") // explicit common case
+                           .replacingOccurrences(of: " do", with: "\ndo\n") // Ensure 'do' breaks line
+                           .replacingOccurrences(of: "; do", with: ";\ndo\n")
+        
+        var formatted = ""
+        var indentLevel = 0
+        let indentStr = "    "
+        
+        let lines = exploded.components(separatedBy: .newlines).map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
+        
+        for line in lines {
+            var currentIndentChange = 0
+            
+            // Closing keywords
+            if line.hasPrefix("fi") || line.hasPrefix("done") || line.hasPrefix("esac") || line.hasPrefix("}") || line.hasPrefix("]") {
+                indentLevel = max(0, indentLevel - 1)
+            }
+            
+            // Middle keywords
+            if line.hasPrefix("else") || line.hasPrefix("elif") {
+                let indentation = String(repeating: indentStr, count: max(0, indentLevel - 1))
+                formatted += indentation + line + "\n"
+            } else {
+                let indentation = String(repeating: indentStr, count: indentLevel)
+                formatted += indentation + line + "\n"
+            }
+            
+            // Opening keywords
+            if line.hasPrefix("then") || line.hasSuffix(" then") ||
+               line.hasPrefix("do") || line.hasSuffix(" do") ||
+               line.hasSuffix("{") || line.hasSuffix("(") {
+                currentIndentChange += 1
+            }
+            if line.hasPrefix("case ") && line.hasSuffix(" in") {
+                currentIndentChange += 1
+            }
+            
+            indentLevel += currentIndentChange
         }
         
         return formatted.trimmingCharacters(in: .newlines)
